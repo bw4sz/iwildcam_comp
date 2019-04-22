@@ -1,30 +1,34 @@
-import DeepTrap
+#import logging dashboard
 #import comet_ml
-experiment = Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_name='deeplidar', log_code=True)
+#experiment = comet_ml.Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_name='iwildcam_comp', log_code=True)
+from DeepTrap import utils
+from DeepTrap.models import random
+from DeepTrap import evaluation
 
 #Read config file
-config = DeepTrap.utils.read_config()
-
-#Load image data
-data = DeepTrap.utils.read_image_data()
+config = utils.read_config()
 
 #load annotations
-annotations = DeepTrap.utils.read_annotation_data()
+train_df = utils.read_train_data(supp_data=False)
+test_df = utils.read_test_data()
 
 #Create keras generator
-generator = DeepTrap.Generator(data,annotations,config)
+generator = Generator(train_df, config)
 
 #Create callbacks
-callbacks = DeepTrap.callback.create(config)
+#callbacks = callback.create(generator,config)
 
 #Load Model
-model = DeepTrap.model.create()
+model = random.Model(config)
 
 #Train Model
-history = model.fit_generator(
-    generator=generator,
-    steps_per_epoch=generator.size()/config["batch_size"],
-    epochs=config["batch_size"],
-    verbose=2,
-    callbacks=callbacks
-)
+model.train(train_df)
+
+#Predict evaluation data
+predictions = model.predict(test_df)
+
+#submission doc
+submission_df = utils.submission(predictions)
+#log
+#experiment.log_asset("output/submission.csv")
+

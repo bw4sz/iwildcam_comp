@@ -2,7 +2,7 @@
 Generator to stream images into model
 """
 import keras
-import DeepTrap 
+from utils import classes
 from keras_retinanet.preprocessing.generator import Generator as retinanet_generator
 
 class Generator(retinanet_generator):
@@ -11,8 +11,7 @@ class Generator(retinanet_generator):
 
     def __init__(
         self,
-        data,
-        annotations,
+        train_df,
         config,
         group_method="none",
         **kwargs
@@ -22,11 +21,10 @@ class Generator(retinanet_generator):
         
         #Assign config and intiliaze values
         self.config
-        self.data = data
-        self.annotations = annotations
+        self.train_df = train_df
         
         #Read classes
-        self.classes=self.read_classes()  
+        self.classes=classes
         
         #Create label dict
         self.labels = {}
@@ -42,16 +40,7 @@ class Generator(retinanet_generator):
     def size(self):
         """ Size of the dataset.
         """
-        return self.data.shape()[0]
-    
-    def read_classes(self):
-        """ 
-        Number of annotation classes
-        """
-        
-        number_of_classes = len(self.annotations.label.unique())
-
-        return(number_of_classes)
+        return self.train_df.shape()[0]
     
     def num_classes(self):
         """ Number of classes in the dataset.
@@ -76,7 +65,6 @@ class Generator(retinanet_generator):
         self.row = self.image_data[image_name]
         
         #
-        self.read_image()
         
         return image
     
