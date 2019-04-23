@@ -6,12 +6,14 @@ import numpy as np
 import keras
 import random
 from DeepTrap.utils import classes
+from DeepTrap import preprocess
 from DeepTrap.visualization import draw_annotation
 from PIL import Image
 import glob
 
 class Generator(keras.utils.Sequence):
     """ Generate data for a custom dataset.
+    Inspired by fizyr/retinanet https://github.com/fizyr/keras-retinanet/
     """
 
     def __init__(
@@ -98,7 +100,7 @@ class Generator(keras.utils.Sequence):
         self.label = self.image_dict[image_index]["category_id"]  
         
         #turn to categorical? not sure
-        categorical_label = keras.utils.np_utils.to_categorical(self.label)
+        categorical_label = keras.utils.np_utils.to_categorical(self.label, num_classes=len(self.classes))
         
         return categorical_label
     
@@ -106,6 +108,8 @@ class Generator(keras.utils.Sequence):
         """ Load annotations for all images in group.
         """
         annotations_group = [self.load_annotation(image_index) for image_index in group]
+        annotations_group = np.stack(annotations_group)
+        
         return annotations_group
     
     def load_image_group(self, group):
@@ -113,18 +117,55 @@ class Generator(keras.utils.Sequence):
         """
         return [self.load_image(image_index) for image_index in group]
      
+    def preprocess_group(self, image_group):
+        """ Preprocess image and its annotations.
+        """
+        
+        for i in range(len(image_group)):
+            # preprocess the image
+            image = preprocess.preprocess_image(image_group[i])
+    
+            # resize image
+            image_group[i] = preprocess.resize_image(image, size=self.config["image_size"])
+        
+        return image_group
+        
     def plot_image(self, image_index, label):
         """plot current image"""
         self.load_image(image_index)
         fig = draw_annotation(self.image, label)
-         
-    def __getitem__(self):
+    
+    def compute_inputs(self, image_group):
+        """ Compute inputs for the network using an image_group.
+        """
+        # get the max image shape
+        max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
+
+        # construct an image batch object
+        image_batch = np.zeros((self.config["batch_size"],) + max_shape, dtype=keras.backend.floatx())
+
+        # copy all images to the upper left part of the image batch object
+        for image_index, image in enumerate(image_group):
+            image_batch[image_index, :image.shape[0], :image.shape[1], :image.shape[2]] = image
+            
+        return image_batch
+            
+    def __getitem__(self, index):
         """Yield the next batch of images"""
+        #Select group
         group = self.groups[index]
-        batch = self.load_image_group(group)
+        
+        #Load images
+        image_group = self.load_image_group(group)
+        
+        #Normalize and resize
+        image_group = self.preprocess_group(image_group)
+        
+        #Create a batch object
+        image_batch = self.compute_inputs(image_group)
         annotations = self.load_annotations_group(group)
         
-        return batch, annotations
+        return image_batch, annotations
         
         
         
