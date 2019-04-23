@@ -5,3 +5,9 @@
 ##################################################################
 [project attributes]
 proj.file-type = 'shared'
+proj.launch-config = {loc('../train.py'): ('project',
+        (u'--debug',
+         '')),
+                      loc('unknown:untitled-3.py'): ('project',
+        (u'KMP_DUPLICATE_LIB_OK=TRUE',
+         ''))}

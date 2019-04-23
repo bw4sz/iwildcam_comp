@@ -21,6 +21,7 @@ class Generator(keras.utils.Sequence):
         train_df,
         image_dir,
         config,
+        training=True
     ):
         """ Initialize a data self.
         """
@@ -29,6 +30,7 @@ class Generator(keras.utils.Sequence):
         self.config = config
         self.data = train_df
         self.image_dir = image_dir
+        self.training=training
         
         #Read classes
         self.classes=classes
@@ -120,7 +122,6 @@ class Generator(keras.utils.Sequence):
     def preprocess_group(self, image_group):
         """ Preprocess image and its annotations.
         """
-        
         for i in range(len(image_group)):
             # preprocess the image
             image = preprocess.preprocess_image(image_group[i])
@@ -163,9 +164,13 @@ class Generator(keras.utils.Sequence):
         
         #Create a batch object
         image_batch = self.compute_inputs(image_group)
-        annotations = self.load_annotations_group(group)
         
-        return image_batch, annotations
+        #If training generator, load annotations
+        if self.training:
+            annotations = self.load_annotations_group(group)
+            return image_batch, annotations
+        else:
+            return image_batch
         
         
         
