@@ -1,6 +1,6 @@
 #import logging dashboard
 #import comet_ml
-#experiment = comet_ml.Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_name='iwildcam_comp', log_code=True)
+experiment = comet_ml.Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_name='iwildcam_comp', log_code=True)
 import argparse
 import numpy as np
 
@@ -14,8 +14,11 @@ mode_parser = argparse.ArgumentParser(description='DeepTrap Trainin')
 mode_parser.add_argument('--debug', action="store_true")
 mode =mode_parser.parse_args()
 
-#Read config file
+#Read and log config file
 config = utils.read_config()
+experiment.log_parameters(config)
+
+#TODO create a save image path
 
 #use local image copy
 if mode.debug:
@@ -52,6 +55,7 @@ predictions = model.predict(validation_generator)
 #turn to classes from one-hot label
 predictions_index = [np.argmax(x) for x in predictions]
 predictions_label = [utils.classes[x] for x in predictions_index]
+
 if mode.debug:
     visualization.plot_images(validation_generator, predictions=predictions_label, n=2,annotations=False, show=True)
 
