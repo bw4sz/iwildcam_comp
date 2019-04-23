@@ -50,9 +50,9 @@ predictions = model.predict(validation_generator)
 
 #View predictions
 #turn to classes from one-hot label
-predictions = [np.argmax(x) for x in predictions]
-predictions_label = [utils.classes[x] for x in predictions]
-if debug:
+predictions_index = [np.argmax(x) for x in predictions]
+predictions_label = [utils.classes[x] for x in predictions_index]
+if mode.debug:
     visualization.plot_images(validation_generator, predictions=predictions_label, n=2,annotations=False, show=True)
 
 #submission doc
