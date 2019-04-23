@@ -4,44 +4,19 @@ import json
 import pandas as pd
 import os
 
-def label_to_class():
-    classes = """empty, 0
-    deer, 1
-    moose, 2
-    squirrel, 3
-    rodent, 4
-    small_mammal, 5
-    elk, 6
-    pronghorn_antelope, 7
-    rabbit, 8
-    bighorn_sheep, 9
-    fox, 10
-    coyote, 11
-    black_bear, 12
-    raccoon, 13
-    skunk, 14
-    wolf, 15
-    bobcat, 16
-    cat, 17
-    dog, 18
-    opossum, 19
-    bison, 20
-    mountain_goat, 21
-    mountain_lion, 22""".split('\n')
-    classes = {int(i.split(', ')[1]): i.split(', ')[0] for i in classes}
-    
-    return classes
-
-classes = label_to_class()
+classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
+    5:"small_mammal",6: "elk", 7:"pronghorn_antelope", 8:"rabbit",9: "bighorn_sheep", 10:"fox",11: "coyote", 
+    12:"black_bear", 13:"raccoon", 14: "skunk", 15: "wolf", 16:"bobcat", 17: "cat",
+    18:"dog", 19:"opossum", 20: "bison", 21: "mountain_goat", 22:"mountain_lion"}
 
 def read_config():
     with open("config.yaml") as f:
         config = yaml.load(f)
     return config
     
-def read_train_data(supp_data=False):
+def read_train_data(image_dir, supp_data=False):
     train_df = pd.read_csv('data/train.csv')
-    train_df['file_path'] = train_df['id'].apply(lambda x: f'{x}.jpg')
+    train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(image_dir, f'{x}.jpg'))
     train_df['dataset'] = "train"    
     train_df['class'] = train_df['category_id'].apply(lambda x: classes[x])
     
@@ -69,9 +44,9 @@ def read_supp_data():
     
     return full_df
 
-def read_test_data():
+def read_test_data(image_dir):
     test_df = pd.read_csv('data/test.csv')
-    test_df['file_path'] = test_df['id'].apply(lambda x: f'{x}.jpg')
+    test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(image_dir,f'{x}.jpg'))
     test_df['dataset'] = "test"    
         
     return test_df
@@ -82,4 +57,4 @@ def submission(predictions):
     submission_df.head()    
     submission_df.to_csv("output/submission.csv",index=False)
     
-    return submission
+    return submission_df

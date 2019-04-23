@@ -5,10 +5,11 @@ class Model():
     def __init__(self, config):
         self.config = config
     
-    def train(self, training_data):
-        self.training_data = training_data
+    def train(self, generator):
+        self.training_data = generator.data
         pass
     
-    def predict(self, testing_data):
+    def predict(self, generator):
+        testing_data = generator.data
         predictions = self.training_data.category_id.sample(n=len(testing_data.index), replace=True)
         return predictions
