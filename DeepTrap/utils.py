@@ -3,6 +3,7 @@ import yaml
 import json
 import pandas as pd
 import os
+import glob
 
 classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
     5:"small_mammal",6: "elk", 7:"pronghorn_antelope", 8:"rabbit",9: "bighorn_sheep", 10:"fox",11: "coyote", 
@@ -51,6 +52,21 @@ def read_test_data(image_dir):
         
     return test_df
 
+def split_training(train_df, image_dir):
+    """Split the training data based on camera locations, as this most closely mirrors the competition goal"""
+    
+    image_paths = glob.glob(os.path.join(image_dir,"*.jpg"))
+    train_df = train_df[train_df.file_path.isin(image_paths)].reset_index()
+    
+    #split 85 - 15 on location data
+    unique_locations = train_df.location.drop_duplicates()
+    #Split the first rows
+    training_locations = train_df.location.drop_duplicates().head(n=int(unique_locations.shape[0]*0.85))    
+    training_split = train_df[train_df.location.isin(training_locations)]
+    evaluation_split  = train_df[~ train_df.location.isin(training_locations)]
+    
+    return training_split, evaluation_split
+    
 def submission(predictions):
     submission_df = pd.read_csv('data/sample_submission.csv')    
     submission_df['Predicted'] = predictions.values

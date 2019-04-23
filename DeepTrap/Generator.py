@@ -95,8 +95,12 @@ class Generator(keras.utils.Sequence):
         """ Load annotations for an image_index.
         """
         #Find the original data and crop
-        self.label = self.image_dict[image_index]["category_id"]        
-        return self.label
+        self.label = self.image_dict[image_index]["category_id"]  
+        
+        #turn to categorical? not sure
+        categorical_label = keras.utils.np_utils.to_categorical(self.label)
+        
+        return categorical_label
     
     def load_annotations_group(self, group):
         """ Load annotations for all images in group.
@@ -110,13 +114,17 @@ class Generator(keras.utils.Sequence):
         return [self.load_image(image_index) for image_index in group]
      
     def plot_image(self, image_index, label):
+        """plot current image"""
         self.load_image(image_index)
         fig = draw_annotation(self.image, label)
          
     def __getitem__(self):
         """Yield the next batch of images"""
         group = self.groups[index]
-        self.load_group(group)
+        batch = self.load_image_group(group)
+        annotations = self.load_annotations_group(group)
+        
+        return batch, annotations
         
         
         

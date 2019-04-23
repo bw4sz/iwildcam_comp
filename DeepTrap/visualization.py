@@ -21,6 +21,8 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
     for i in range(n):
         if annotations:
             annotation = generator.load_annotation(i)
+            #Labels are in 1 hot categorical, just get index
+            annotation=np.argmax(annotation)            
             annotation_class = utils.classes[annotation]
             label = "Annotation:{}".format(annotation_class)
             
