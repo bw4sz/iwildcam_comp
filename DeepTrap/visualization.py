@@ -2,8 +2,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
-
 import matplotlib.pyplot as plt
+from DeepTrap import utils
 
 def plot_images(generator, n=None, predictions = None, annotations = True, show=False, save=False,savepath =None, experiment=None):
     """Plot the first n images in a generator
@@ -21,10 +21,12 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
     for i in range(n):
         if annotations:
             annotation = generator.load_annotation(i)
-            label = "Annotation:{}".format(annotation)
+            annotation_class = utils.classes[annotation]
+            label = "Annotation:{}".format(annotation_class)
+            
         if predictions is not None:
             prediction = predictions[i]
-            label="Prediction: {}".format(i)
+            label="Prediction: {}".format(prediction)
         
         #Plot images
         fig = generator.plot_image(i, label)

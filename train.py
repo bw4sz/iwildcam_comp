@@ -23,6 +23,7 @@ test_df = utils.read_test_data(image_dir=config["test_data_path"])
 
 #Create keras training generator
 train_generator = Generator(train_df, config=config, image_dir=config["train_data_path"])
+visualization.plot_images(train_generator, n= 5,annotations=True, show=True)
 
 #Create callbacks
 #callbacks = callback.create(train_generator,config)
@@ -39,10 +40,13 @@ validation_generator = Generator(test_df, config=config, image_dir=config["test_
 predictions = model.predict(validation_generator)
 
 #View predictions
-visualization.plot_images(validation_generator, predictions=predictions, n= 2,annotations=False)
+#turn to classes
+predictions_label = [utils.classes[x] for x in predictions]
+visualization.plot_images(validation_generator, predictions=predictions_label, n= 2,annotations=False, show=True)
 
 #submission doc
-submission_df = utils.submission(predictions)
+if not debug:
+    submission_df = utils.submission(predictions)
 #log
 #experiment.log_asset("output/submission.csv")
 
