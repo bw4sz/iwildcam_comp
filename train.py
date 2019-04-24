@@ -24,6 +24,8 @@ experiment.log_parameters(config)
 if mode.debug:
     config["train_data_path"] = "tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images/"
     config["test_data_path"] = "tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
+    config["epochs"] = 1
+    
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
@@ -64,7 +66,8 @@ else:
 #submission doc
 if not mode.debug:
     submission_df = utils.submission(predictions)
-    
+
+experiment.end()
 #log
 #experiment.log_asset("output/submission.csv")
 
