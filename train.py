@@ -44,8 +44,8 @@ evalution_callback = callback.Evaluate(evaluation_generator, experiment)
 model = resnet.Model(config)
 
 #Train Model
+model.train(train_generator, evaluation_generator=evaluation_generator)
 #model.train(train_generator, evaluation_generator=evaluation_generator, callbacks=[evalution_callback])
-model.train(train_generator, evaluation_generator=evaluation_generator, callbacks=[evalution_callback])
 
 #Predict evaluation data
 #Create evaluation generator for Idaho Data
