@@ -135,6 +135,7 @@ class Generator(keras.utils.Sequence):
         """plot current image"""
         self.load_image(image_index)
         fig = draw_annotation(self.image, label)
+        return fig
     
     def compute_inputs(self, image_group):
         """ Compute inputs for the network using an image_group.

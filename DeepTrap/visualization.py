@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from DeepTrap import utils
 
-def plot_images(generator, n=None, predictions = None, annotations = True, show=False, save=False,savepath =None, experiment=None):
+def plot_images(generator, n=None, predictions = None, annotations = True, show=False, save=False,savepath=None, experiment=None):
     """Plot the first n images in a generator
     n: number of images; if none, all images
     annotations: Add ground truth (if available)
@@ -42,9 +42,9 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
             image_save_path ="{}/{}.png".format(savepath,generator.data[i]["file_name"])
             plt.savefig(image_save_path)
             
-            #log on comet
-            if experiment:
-                experiment.log_image(image_save_path)
+        #log on comet
+        if experiment:
+            experiment.log_figure(figure = fig)
 
 #Draw annotations and labels
 def draw_annotation(image, label, box=None):

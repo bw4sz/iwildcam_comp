@@ -47,13 +47,14 @@ class Model():
             md5_hash=checksum
         )
     
-    def train(self, train_generator, callbacks=None):
+    def train(self, train_generator, callbacks=None, evaluation_generator=None):
         
         self.model.fit_generator(
             generator=train_generator,
             steps_per_epoch=train_generator.size()/self.config["batch_size"],
             epochs=self.config["epochs"],
             verbose=2,
+            validation_data=evaluation_generator,
             shuffle=False,
             callbacks=callbacks,
         )        

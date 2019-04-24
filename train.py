@@ -30,7 +30,7 @@ train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=
 test_df = utils.read_test_data(image_dir=config["test_data_path"])
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
-training_split, evaluation_split = utils.split_training(train_df,  image_dir=config["train_data_path"] )
+training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
 train_generator = Generator(training_split, config=config, image_dir=config["train_data_path"])
 evaluation_generator = Generator(evaluation_split, config=config, image_dir=config["train_data_path"])
 
@@ -44,7 +44,7 @@ evaluation_generator = Generator(evaluation_split, config=config, image_dir=conf
 model = resnet.Model(config)
 
 #Train Model
-model.train(train_generator)
+model.train(train_generator, evaluation_generator=evaluation_generator)
 
 #Predict evaluation data
 #Create evaluation generator for Idaho Data
@@ -57,8 +57,10 @@ predictions_index = [np.argmax(x) for x in predictions]
 predictions_label = [utils.classes[x] for x in predictions_index]
 
 if mode.debug:
-    visualization.plot_images(validation_generator, predictions=predictions_label, n=2,annotations=False, show=True)
-
+    visualization.plot_images(validation_generator, predictions=predictions_label, n=2,annotations=False, show=False, experiment=experiment)
+else:
+    visualization.plot_images(validation_generator, predictions=predictions_label,n=50, annotations=False, show=False, experiment=experiment)    
+ 
 #submission doc
 if not mode.debug:
     submission_df = utils.submission(predictions)
