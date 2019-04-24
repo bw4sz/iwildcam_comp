@@ -1,5 +1,5 @@
 #import logging dashboard
-#import comet_ml
+import comet_ml
 experiment = comet_ml.Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_name='iwildcam_comp', log_code=True)
 import argparse
 import numpy as np

@@ -19,5 +19,5 @@ export PATH=${PATH}:/home/b.weinstein/miniconda/envs/DeepTrap/bin/
 export PYTHONPATH=${PYTHONPATH}:/home/b.weinstein/miniconda/envs/DeepTrap/lib/python3.6/site-packages/
 echo $PYTHONPATH
 
-/home/b.weinstein/iwildcam_comp
+cd /home/b.weinstein/iwildcam_comp
 python train.py
