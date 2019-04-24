@@ -6,7 +6,7 @@ import numpy as np
 
 from DeepTrap import utils
 from DeepTrap.models import resnet
-from DeepTrap import evaluation, visualization
+from DeepTrap import evaluation, visualization, callback
 from DeepTrap.Generator import Generator
 
 #Set training or training
@@ -18,14 +18,12 @@ mode =mode_parser.parse_args()
 config = utils.read_config()
 experiment.log_parameters(config)
 
-#TODO create a save image path
-
 #use local image copy
 if mode.debug:
     config["train_data_path"] = "tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images/"
     config["test_data_path"] = "tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
     config["epochs"] = 1
-    
+    config["batch_size"] =1 
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
@@ -40,13 +38,14 @@ evaluation_generator = Generator(evaluation_split, config=config, image_dir=conf
     #visualization.plot_images(train_generator, n=5,annotations=True, show=True)
 
 #Create callbacks
-#callbacks = callback.create(train_generator,config)
+evalution_callback = callback.Evaluate(evaluation_generator, experiment)
 
 #Load Model
 model = resnet.Model(config)
 
 #Train Model
-model.train(train_generator, evaluation_generator=evaluation_generator)
+#model.train(train_generator, evaluation_generator=evaluation_generator, callbacks=[evalution_callback])
+model.train(train_generator, evaluation_generator=evaluation_generator, callbacks=[evalution_callback])
 
 #Predict evaluation data
 #Create evaluation generator for Idaho Data
@@ -67,7 +66,8 @@ else:
 if not mode.debug:
     submission_df = utils.submission(predictions)
 
+    experiment.log_asset("output/submission.csv")
+
 experiment.end()
 #log
-#experiment.log_asset("output/submission.csv")
 
