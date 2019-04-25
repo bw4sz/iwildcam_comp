@@ -12,6 +12,7 @@ from DeepTrap.Generator import Generator
 #Set training or training
 mode_parser = argparse.ArgumentParser(description='DeepTrap Trainin')
 mode_parser.add_argument('--debug', action="store_true")
+mode_parser.add_argument("-g", "--gpus", type=int, default=1, help="# of GPUs to use for training")
 mode =mode_parser.parse_args()
 
 #Read and log config file
@@ -24,6 +25,7 @@ if mode.debug:
     config["test_data_path"] = "tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
     config["epochs"] = 1
     config["batch_size"] =1 
+    config["gpu"] = 1
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)

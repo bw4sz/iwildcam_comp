@@ -15,8 +15,17 @@ class Model():
         
         #Define input shape
         x = keras.layers.Input(shape)
-        self.model = keras_resnet.models.ResNet50(x, classes=classes)
-        self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
+        
+        #if multiple gpu
+        num_gpu = config["gpus"] 
+        if num_gpu > 1:
+            from keras.utils import multi_gpu_model
+            with tf.device('/cpu:0'):
+                self.model = keras_resnet.models.ResNet50(x, classes=classes)                
+                self.model = multi_gpu_model(model, gpus=num_gpu)
+        else:
+            self.model = keras_resnet.models.ResNet50(x, classes=classes)
+            self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
         
         #Load imagenet weights
         imagenet_weights = self.download_imagenet()
@@ -48,7 +57,7 @@ class Model():
         )
     
     def train(self, train_generator, callbacks=None, evaluation_generator=None):
-        
+                
         self.model.fit_generator(
             generator=train_generator,
             steps_per_epoch=train_generator.size()/self.config["batch_size"],
