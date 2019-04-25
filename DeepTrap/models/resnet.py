@@ -25,7 +25,7 @@ class Model():
                 self.model = multi_gpu_model(self.model, gpus=num_gpu)
         else:
             self.model = keras_resnet.models.ResNet50(x, classes=classes)
-            self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
+        self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
         
         #Load imagenet weights
         imagenet_weights = self.download_imagenet()
