@@ -68,10 +68,10 @@ def split_training(train_df, image_dir):
     
     return training_split, evaluation_split
     
-def submission(predictions):
+def submission(predictions, datestamp):
     submission_df = pd.read_csv('data/sample_submission.csv')    
-    submission_df['Predicted'] = predictions.values
+    submission_df['Predicted'] = predictions
     submission_df.head()    
-    submission_df.to_csv("output/submission.csv",index=False)
+    submission_df.to_csv("output/{}_submission.csv".format(datestamp),index=False)
     
     return submission_df

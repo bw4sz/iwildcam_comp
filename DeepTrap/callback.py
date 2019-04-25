@@ -21,17 +21,20 @@ class Evaluate(keras.callbacks.Callback):
         # run evaluation
         #predictions
         predictions = self.model.predict_generator(self.generator)
-        
+            
         ground_truth = []
         for i in range(self.generator.size()):
             ground_truth.append(self.generator.load_annotation(i))
         
+        #Calculate f1
         ground_truth=np.stack(ground_truth)
-        
+        ground_truth = np.argmax(ground_truth,axis=1)
+        predictions =np.argmax(predictions,axis=1)
         f1 = f1_score(ground_truth, predictions,average="macro")
         
-        fig = visualization.plot_confusion(ground_truth,predictions)
-        
+        #Calculate confusion matrix
+        labels = list(self.generator.classes.values())
+        fig = visualization.plot_confusion_matrix(ground_truth, predictions, labels)
         if self.experiment:
-            self.experiment.log_metric(f1)        
-            self.experiment.log_figure("confusion_matrix",fig)
+            self.experiment.log_metric("f1 score", f1)        
+            #self.experiment.log_figure("confusion_matrix",fig)

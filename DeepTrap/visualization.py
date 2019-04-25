@@ -4,6 +4,8 @@ import matplotlib.patches as patches
 import numpy as np
 import matplotlib.pyplot as plt
 from DeepTrap import utils
+from sklearn.metrics import confusion_matrix
+from sklearn.utils.multiclass import unique_labels
 
 def plot_images(generator, n=None, predictions = None, annotations = True, show=False, save=False,savepath=None, experiment=None):
     """Plot the first n images in a generator
@@ -75,30 +77,24 @@ def draw_annotation(image, label, box=None):
     return fig
 
 def plot_confusion_matrix(y_true, y_pred, classes,
-                          normalize=False,
+                          normalize=True,
                           title=None,
                           cmap=plt.cm.Blues):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
     """
-    if not title:
-        if normalize:
-            title = 'Normalized confusion matrix'
-        else:
-            title = 'Confusion matrix, without normalization'
 
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     # Only use the labels that appear in the data
-    classes = classes[unique_labels(y_true, y_pred)]
+    classes = [classes[i] for i in unique_labels(y_true, y_pred)]
     if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        
+        cm = cm.astype('float') / np.nansum(cm,axis=1)[:, np.newaxis]
         print("Normalized confusion matrix")
     else:
         print('Confusion matrix, without normalization')
-
-    print(cm)
 
     fig, ax = plt.subplots()
     im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
@@ -125,5 +121,5 @@ def plot_confusion_matrix(y_true, y_pred, classes,
                     ha="center", va="center",
                     color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
-    return ax
+    return fig
     

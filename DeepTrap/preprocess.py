@@ -2,7 +2,6 @@
 import numpy as np
 import cv2
 
-
 def resize_image(img, size=299):
     """ Resize an image such that the size is constrained to min_side and max_side.
 

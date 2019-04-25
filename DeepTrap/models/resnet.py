@@ -1,10 +1,10 @@
 #Deep Residual Network
+import numpy as np
 import keras_resnet.models
 import keras
 from keras.utils import get_file
 import tensorflow as tf
-from .. import utils
-
+from .. import utils, preprocess
 
 class Model():
     
@@ -66,8 +66,11 @@ class Model():
             validation_data=evaluation_generator,
             shuffle=False,
             callbacks=callbacks,
-        )        
+        use_multiprocessing = False)       
             
     def predict(self, generator):
-        predictions = self.model.predict_generator(generator)
+        predictions = self.model.predict_generator(generator, steps=None, max_queue_size=10, 
+                                    workers=0, 
+                                    use_multiprocessing=False, 
+                                    verbose=1)
         return predictions
