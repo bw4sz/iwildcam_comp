@@ -2,7 +2,7 @@
 import keras_resnet.models
 import keras
 from keras.utils import get_file
-
+import tensorflow as tf
 from .. import utils
 
 
