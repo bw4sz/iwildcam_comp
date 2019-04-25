@@ -58,10 +58,11 @@ def split_training(train_df, image_dir):
     image_paths = glob.glob(os.path.join(image_dir,"*.jpg"))
     train_df = train_df[train_df.file_path.isin(image_paths)].reset_index()
     
-    #split 85 - 15 on location data
+    #split on location data
+    percent_training = 0.5
     unique_locations = train_df.location.drop_duplicates()
     #Split the first rows
-    training_locations = train_df.location.drop_duplicates().head(n=int(unique_locations.shape[0]*0.85))    
+    training_locations = train_df.location.drop_duplicates().head(n=int(unique_locations.shape[0]*percent_training))    
     training_split = train_df[train_df.location.isin(training_locations)]
     evaluation_split  = train_df[~ train_df.location.isin(training_locations)]
     
