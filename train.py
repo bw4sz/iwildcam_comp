@@ -1,5 +1,10 @@
 import comet_ml
 experiment = comet_ml.Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_name='iwildcam_comp', log_code=True)
+
+#set matplotlib
+import matplotlib
+matplotlib.use('Agg')
+
 import argparse
 import numpy as np
 from datetime import datetime
@@ -31,6 +36,7 @@ if mode.debug:
     config["classification_model"]["epochs"] = 1
     config["classification_model"]["batch_size"] =3
     config["classification_model"]["gpu"] = 1
+    
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)

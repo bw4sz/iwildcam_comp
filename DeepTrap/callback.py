@@ -30,16 +30,9 @@ class Evaluate(keras.callbacks.Callback):
             ground_truth.append(self.generator.load_annotation(key))
         
         #Calculate f1
-        len("ground truth vector length is {}".format(len(ground_truth)))
-        
         ground_truth=np.stack(ground_truth)
         ground_truth = np.argmax(ground_truth,axis=1)
         predictions =np.argmax(predictions,axis=1)
-        
-        print("The shape of ground truth is {}, and the shape of predictions is {}".format(ground_truth.shape,predictions.shape))
-        print("There are {} images in the data file".format(self.generator.data.shape[0]))
-        print("The generator length is {}".format(len(self.generator)))
-        print("The generator size is {}".format(self.generator.size()))
         
         #Sanity check
         assert ground_truth.shape == predictions.shape, "Ground truth and predictions don't have the same shape!"
