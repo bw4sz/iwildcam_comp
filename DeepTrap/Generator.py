@@ -5,7 +5,7 @@ import os
 import numpy as np
 import keras
 import random
-from DeepTrap.utils import classes
+from DeepTrap.utils import classes as classification_classes
 from DeepTrap import preprocess
 from DeepTrap.visualization import draw_annotation
 from PIL import Image
@@ -14,36 +14,43 @@ import glob
 class Generator(keras.utils.Sequence):
     """ Generate data for a custom dataset.
     Inspired by fizyr/retinanet https://github.com/fizyr/keras-retinanet/
+    data: a pandas dataframe from utils.read
+    image_dir: path to directory of image files
+    batch_size: training batch size
+    image size: resize image to square
+    label_name: pandas colunn with labels
+    classes: a dict of class labels key -> name
+    training: whether annotations should be loaded.
     """
 
     def __init__(
         self,
-        train_df,
+        data,
         image_dir,
         batch_size,
         image_size,
+        label_name ="category_id",
+        classes=classification_classes,
         training=True
     ):
         """ Initialize a data self.
         """
         
         #Assign config and intiliaze values
-        self.data = train_df
+        self.data = data
         self.image_dir = image_dir
         self.training=training
         self.batch_size = batch_size
         self.image_size = image_size
-        
+        self.label_name = label_name
+
         #Read classes
-        self.classes=classes
+        self.classes = classes
         
         #Create label dict
         self.labels = {}
         for key, value in self.classes.items():
             self.labels[value] = key                
-        
-        #Check for images - limit training data to those images which are present
-        #self.check_images()
         
         #Create indices
         self.define_groups()
@@ -96,7 +103,7 @@ class Generator(keras.utils.Sequence):
         """ Load annotations for an image_index.
         """
         #Find the original data and crop
-        self.label = self.image_dict[image_index]["category_id"]  
+        self.label = self.image_dict[image_index][self.label_name]
         
         #turn to categorical? not sure
         categorical_label = keras.utils.np_utils.to_categorical(self.label, num_classes=len(self.classes))
