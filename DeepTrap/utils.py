@@ -10,9 +10,9 @@ classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
     12:"black_bear", 13:"raccoon", 14: "skunk", 15: "wolf", 16:"bobcat", 17: "cat",
     18:"dog", 19:"opossum", 20: "bison", 21: "mountain_goat", 22:"mountain_lion"}
 
-def read_config(preprend=None):
+def read_config(prepend=None):
     filename="config.yaml"
-    if preprend:
+    if prepend:
         filename = os.path.join(prepend,filename)
     with open(filename) as f:
         config = yaml.load(f)

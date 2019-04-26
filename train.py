@@ -32,6 +32,10 @@ if mode.debug:
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
+
+#Mini test set for quick training
+traindf = train_df.groupby("category_id").apply(lambda x: x.head(n=100))
+
 test_df = utils.read_test_data(image_dir=config["test_data_path"])
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
@@ -69,7 +73,7 @@ else:
 #submission doc
 if not mode.debug:
     submission_df = utils.submission(predictions, dirname)
-    experiment.log_asset(file_like_object=submission_df)
+    experiment.log_asset(file_like_object=submission_df)    
 
 experiment.end()
 
