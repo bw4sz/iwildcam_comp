@@ -44,4 +44,4 @@ class Evaluate(keras.callbacks.Callback):
         fig = visualization.plot_confusion_matrix(ground_truth, predictions, labels)
         if self.experiment:
             self.experiment.log_metric("f1 score", f1)        
-            #self.experiment.log_figure("confusion_matrix",fig)
+            self.experiment.log_figure("confusion_matrix",fig)
