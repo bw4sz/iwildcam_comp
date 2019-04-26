@@ -75,7 +75,7 @@ model.train(train_generator, evaluation_generator=evaluation_generator, callback
 #Test data
 test_df = utils.read_test_data(image_dir=config["test_data_path"])
 test_df = utils.check_images(test_df, config["test_data_path"])
-test_df = test_df.head(1000)
+test_df = test_df.sample(n=1000)
 
 #Create evaluation generator and predict
 validation_generator = Generator(test_df,
@@ -96,9 +96,9 @@ else:
     visualization.plot_images(validation_generator, predictions=predictions_label,n=50, annotations=False, show=False, experiment=experiment)    
  
 #submission doc
-if not mode.debug:
-    submission_df = utils.submission(predictions, dirname)
-    experiment.log_asset(file_like_object=submission_df)    
+#if not mode.debug:
+    #submission_df = utils.submission(predictions, dirname)
+    #experiment.log_asset(file_like_object=submission_df)    
 
 experiment.end()
 

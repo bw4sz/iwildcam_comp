@@ -23,6 +23,7 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
     for i in range(n):
         if annotations:
             annotation = generator.load_annotation(i)
+            
             #Labels are in 1 hot categorical, just get index
             annotation=np.argmax(annotation)            
             annotation_class = utils.classes[annotation]
@@ -36,13 +37,6 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
         fig = generator.plot_image(i, label)
         if show:
             plt.show()
-        if save:
-            if savepath is None:
-                savepath = os.getcwd()
-            
-            #Use filename to save
-            image_save_path ="{}/{}.png".format(savepath,generator.data[i]["file_name"])
-            plt.savefig(image_save_path)
             
         #log on comet
         if experiment:
