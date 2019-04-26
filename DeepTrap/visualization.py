@@ -21,7 +21,7 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
     
     #For each image load label
     for i in range(n):
-        image_names = list(self.generator.image_dict.keys())
+        image_names = list(generator.image_dict.keys())
         key = image_names[i]
         if annotations:
             annotation = generator.load_annotation(key)

@@ -37,7 +37,6 @@ if mode.debug:
     config["classification_model"]["batch_size"] =3
     config["classification_model"]["gpu"] = 1
     
-    
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
 
@@ -59,9 +58,6 @@ evaluation_generator = Generator(evaluation_split,
                             batch_size=config["classification_model"]["batch_size"], 
                             image_dir=config["train_data_path"])
 
-#if debug:
-    #visualization.plot_images(train_generator, n=5,annotations=True, show=True)
-
 #Create callbacks
 evalution_callback = callback.Evaluate(evaluation_generator, experiment)
 
@@ -75,7 +71,9 @@ model.train(train_generator, evaluation_generator=evaluation_generator, callback
 #Test data
 test_df = utils.read_test_data(image_dir=config["test_data_path"])
 test_df = utils.check_images(test_df, config["test_data_path"])
-test_df = test_df.sample(n=1000)
+
+if not mode.debug:
+    test_df = test_df.sample(n=1000)
 
 #Create evaluation generator and predict
 validation_generator = Generator(test_df,
