@@ -3,7 +3,6 @@ train_data_path: /orange/ewhite/b.weinstein/CameraTrap/iWildCam_2019_CCT/iWildCa
 test_data_path: /orange/ewhite/b.weinstein/CameraTrap/iWildCam_2019_IDFG/iWildCam_IDFG_images/
 
 #Preprocessing
-image_size: 299
 output_dir: /orange/ewhite/b.weinstein/CameraTrap/preprocessed/
 
 #Training
@@ -11,6 +10,7 @@ bgmodel:
     epochs: 1
     batch_size: 1
 classification_model:
+    image_size: 299
     gpus: 1
     epochs: 1
     batch_size: 50

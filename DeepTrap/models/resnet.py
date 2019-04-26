@@ -10,14 +10,14 @@ class Model():
     
     def __init__(self, config):
         self.config = config
-        self.image_size = config["image_size"]
+        self.image_size = config["classification_model"]["image_size"]
         shape, classes = (self.image_size , self.image_size , 3), len(utils.classes)
         
         #Define input shape
         x = keras.layers.Input(shape)
         
         #if multiple gpu
-        num_gpu = config["gpus"] 
+        num_gpu = config["classification_model"]["gpus"] 
         if num_gpu > 1:
             from keras.utils import multi_gpu_model
             with tf.device('/cpu:0'):
@@ -60,8 +60,8 @@ class Model():
                 
         self.model.fit_generator(
             generator=train_generator,
-            steps_per_epoch=train_generator.size()/self.config["batch_size"],
-            epochs=self.config["epochs"],
+            steps_per_epoch=train_generator.size()/self.config["classification_model"]["batch_size"],
+            epochs=self.config["classification_model"]["epochs"],
             verbose=2,
             validation_data=evaluation_generator,
             shuffle=False,

@@ -20,17 +20,19 @@ class Generator(keras.utils.Sequence):
         self,
         train_df,
         image_dir,
-        config,
+        batch_size,
+        image_size,
         training=True
     ):
         """ Initialize a data self.
         """
         
         #Assign config and intiliaze values
-        self.config = config
         self.data = train_df
         self.image_dir = image_dir
         self.training=training
+        self.batch_size = batch_size
+        self.image_size = image_size
         
         #Read classes
         self.classes=classes
@@ -59,7 +61,7 @@ class Generator(keras.utils.Sequence):
             random.shuffle(order)
         
         #Split into batches
-        self.groups = [[order[x % len(order)] for x in range(i, i + self.config["batch_size"])] for i in range(0, len(order), self.config["batch_size"])]
+        self.groups = [[order[x % len(order)] for x in range(i, i + self.batch_size)] for i in range(0, len(order), self.batch_size)]
     
     def size(self):
         """ Size of the dataset.
@@ -122,7 +124,7 @@ class Generator(keras.utils.Sequence):
             image = preprocess.preprocess_image(image_group[i])
     
             # resize image
-            image_group[i] = preprocess.resize_image(image, size=self.config["image_size"])
+            image_group[i] = preprocess.resize_image(image, size=self.image_size)
         
         return image_group
         
@@ -139,7 +141,7 @@ class Generator(keras.utils.Sequence):
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
 
         # construct an image batch object
-        image_batch = np.zeros((self.config["batch_size"],) + max_shape, dtype=keras.backend.floatx())
+        image_batch = np.zeros((self.batch_size,) + max_shape, dtype=keras.backend.floatx())
 
         # copy all images to the upper left part of the image batch object
         for image_index, image in enumerate(image_group):

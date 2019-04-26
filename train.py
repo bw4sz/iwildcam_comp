@@ -26,9 +26,9 @@ experiment.log_parameters(config)
 if mode.debug:
     config["train_data_path"] = "tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images/"
     config["test_data_path"] = "tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
-    config["epochs"] = 1
-    config["batch_size"] =1
-    config["gpu"] = 1
+    config["classification_model"]["epochs"] = 1
+    config["classification_model"]["batch_size"] =1
+    config["classification_model"]["gpu"] = 1
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
@@ -41,8 +41,15 @@ train_df = train_df.groupby("category_id", as_index=False).apply(lambda x: x.hea
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
-train_generator = Generator(training_split, config=config, image_dir=config["train_data_path"])
-evaluation_generator = Generator(evaluation_split, config=config, image_dir=config["train_data_path"])
+train_generator = Generator(training_split, 
+                            image_size=config["classification_model"]["image_size"],
+                            batch_size=config["classification_model"]["batch_size"], 
+                            image_dir=config["train_data_path"])
+
+evaluation_generator = Generator(evaluation_split,
+                            image_size=config["classification_model"]["image_size"],
+                            batch_size=config["classification_model"]["batch_size"], 
+                            image_dir=config["train_data_path"])
 
 #if debug:
     #visualization.plot_images(train_generator, n=5,annotations=True, show=True)
@@ -61,7 +68,11 @@ test_df = utils.read_test_data(image_dir=config["test_data_path"])
 test_df = utils.check_images(test_df, config["test_data_path"])
 
 #Create evaluation generator and predict
-validation_generator = Generator(test_df, config=config, image_dir=config["test_data_path"],training=False)
+validation_generator = Generator(test_df,
+                                 image_size=config["classification_model"]["image_size"],
+                                 batch_size=config["classification_model"]["batch_size"], 
+                                 image_dir=config["test_data_path"],training=False)
+#predict
 predictions = model.predict(validation_generator)
 
 #View predictions
