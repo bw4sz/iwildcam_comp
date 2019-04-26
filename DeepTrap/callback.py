@@ -20,7 +20,9 @@ class Evaluate(keras.callbacks.Callback):
         
         # run evaluation
         #predictions
-        predictions = self.model.predict_generator(self.generator)
+        predictions_batches = self.model.predict_generator(self.generator)
+        predictions = predictions_batches[:self.generator.size(),:]
+        
         ground_truth = []
         for i in range(self.generator.size()):
             image_names = list(self.generator.image_dict.keys())

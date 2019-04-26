@@ -24,13 +24,12 @@ experiment.log_parameters(config)
 experiment.log_parameters(prefix= "classification_model", dic=config["classification_model"])
 experiment.log_parameters(prefix= "bgmodel", dic=config["bgmodel"])
 
-
 #use local image copy
 if mode.debug:
     config["train_data_path"] = "tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images/"
     config["test_data_path"] = "tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
     config["classification_model"]["epochs"] = 1
-    config["classification_model"]["batch_size"] =1
+    config["classification_model"]["batch_size"] =3
     config["classification_model"]["gpu"] = 1
     
 #load annotations

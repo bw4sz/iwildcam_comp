@@ -69,8 +69,15 @@ class Model():
         use_multiprocessing = False)       
             
     def predict(self, generator):
-        predictions = self.model.predict_generator(generator, steps=None, max_queue_size=10, 
-                                    workers=0, 
+        
+        #Check the remainder of the batch size, do batches that fit
+        predictions_batches = self.model.predict_generator(generator, max_queue_size=10, 
+                                    workers=1, 
                                     use_multiprocessing=False, 
+                                    shuffle=False,
                                     verbose=1)
+        
+        #construction the final batch seperately
+        predictions = predictions_batches[:generator.size(),:]
+        
         return predictions
