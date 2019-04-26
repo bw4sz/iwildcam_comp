@@ -7,7 +7,11 @@ image_size: 299
 output_dir: /orange/ewhite/b.weinstein/CameraTrap/preprocessed/
 
 #Training
-gpus: 1
-epochs: 1
-batch_size: 50
+bgmodel:
+    epochs: 1
+    batch_size: 1
+classification_model:
+    gpus: 1
+    epochs: 1
+    batch_size: 50
 

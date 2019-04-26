@@ -57,10 +57,10 @@ model = resnet.Model(config)
 model.train(train_generator, evaluation_generator=evaluation_generator, callbacks=[evalution_callback])
 
 #Predict evaluation data
-
 test_df = utils.read_test_data(image_dir=config["test_data_path"])
 test_df = utils.check_images(test_df, config["test_data_path"])
-#Create evaluation generator for Idaho Data
+
+#Create evaluation generator and predict
 validation_generator = Generator(test_df, config=config, image_dir=config["test_data_path"],training=False)
 predictions = model.predict(validation_generator)
 

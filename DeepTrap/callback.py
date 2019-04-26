@@ -24,7 +24,9 @@ class Evaluate(keras.callbacks.Callback):
             
         ground_truth = []
         for i in range(self.generator.size()):
-            ground_truth.append(self.generator.load_annotation(i))
+            image_names = list(self.generator.image_dict.keys())
+            key = image_names[i]
+            ground_truth.append(self.generator.load_annotation(key))
         
         #Calculate f1
         ground_truth=np.stack(ground_truth)
