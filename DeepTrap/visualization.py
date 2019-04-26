@@ -21,8 +21,10 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
     
     #For each image load label
     for i in range(n):
+        image_names = list(self.generator.image_dict.keys())
+        key = image_names[i]
         if annotations:
-            annotation = generator.load_annotation(i)
+            annotation = generator.load_annotation(key)
             
             #Labels are in 1 hot categorical, just get index
             annotation=np.argmax(annotation)            
@@ -34,7 +36,7 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
             label="Prediction: {}".format(prediction)
         
         #Plot images
-        fig = generator.plot_image(i, label)
+        fig = generator.plot_image(key, label)
         if show:
             plt.show()
             
