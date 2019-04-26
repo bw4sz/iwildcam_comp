@@ -74,7 +74,6 @@ class Model():
         predictions_batches = self.model.predict_generator(generator, max_queue_size=10, 
                                     workers=1, 
                                     use_multiprocessing=False, 
-                                    shuffle=False,
                                     verbose=1)
         
         #construction the final batch seperately
