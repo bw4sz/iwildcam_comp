@@ -21,6 +21,9 @@ dirname = datetime.now().strftime("%Y%m%d_%H%M%S")
 #Read and log config file
 config = utils.read_config()
 experiment.log_parameters(config)
+experiment.log_parameters(prefix= "classification_model", dic=config["classification_model"])
+experiment.log_parameters(prefix= "bgmodel", dic=config["bgmodel"])
+
 
 #use local image copy
 if mode.debug:

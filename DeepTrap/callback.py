@@ -32,6 +32,9 @@ class Evaluate(keras.callbacks.Callback):
         ground_truth=np.stack(ground_truth)
         ground_truth = np.argmax(ground_truth,axis=1)
         predictions =np.argmax(predictions,axis=1)
+        
+        print("The shape of ground truth is {}, and the shape of predictions is {}".format(ground_truth.shape,predictions.shape))
+        
         f1 = f1_score(ground_truth, predictions,average="macro")
         
         #Calculate confusion matrix

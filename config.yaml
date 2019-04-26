@@ -13,5 +13,5 @@ classification_model:
     image_size: 299
     gpus: 1
     epochs: 1
-    batch_size: 50
+    batch_size: 32
 
