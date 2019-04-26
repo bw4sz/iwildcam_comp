@@ -10,6 +10,14 @@ classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
     12:"black_bear", 13:"raccoon", 14: "skunk", 15: "wolf", 16:"bobcat", 17: "cat",
     18:"dog", 19:"opossum", 20: "bison", 21: "mountain_goat", 22:"mountain_lion"}
 
+def check_images(data, image_dir):
+    #get available images
+    image_paths = glob.glob(os.path.join(image_dir,"*.jpg"))
+    data = data[data.file_path.isin(image_paths)].reset_index()
+    assert data.shape[0] != 0, "Data is empty, check image path {}".format(image_dir)    
+    
+    return data
+    
 def read_config(prepend=None):
     filename="config.yaml"
     if prepend:
@@ -57,13 +65,10 @@ def read_test_data(image_dir):
 
 def split_training(train_df, image_dir):
     """Split the training data based on camera locations, as this most closely mirrors the competition goal"""
-    
-    image_paths = glob.glob(os.path.join(image_dir,"*.jpg"))
-    train_df = train_df[train_df.file_path.isin(image_paths)].reset_index()
-    
     #split on location data
-    percent_training = 0.5
+    percent_training = 0.75
     unique_locations = train_df.location.drop_duplicates()
+    
     #Split the first rows
     training_locations = train_df.location.drop_duplicates().head(n=int(unique_locations.shape[0]*percent_training))    
     training_split = train_df[train_df.location.isin(training_locations)]

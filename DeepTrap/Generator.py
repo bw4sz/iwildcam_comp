@@ -41,7 +41,7 @@ class Generator(keras.utils.Sequence):
             self.labels[value] = key                
         
         #Check for images - limit training data to those images which are present
-        self.check_images()
+        #self.check_images()
         
         #Create indices
         self.define_groups()
@@ -49,16 +49,11 @@ class Generator(keras.utils.Sequence):
     def __len__(self):
         """Number of batches for self"""
         return len(self.groups)
-    
-    def check_images(self):
-        #get available images
-        image_paths = glob.glob(os.path.join(self.image_dir,"*.jpg"))
-        self.data = self.data[self.data.file_path.isin(image_paths)].reset_index()
-        assert self.data.shape[0] != 0, "Data is empty, check image path {}".format(self.image_dir)
 
     def define_groups(self, shuffle = True):
         self.image_dict = self.data.to_dict("index")
         order = list(self.image_dict.keys())
+        
         #Shuffle input order
         if shuffle:
             random.shuffle(order)

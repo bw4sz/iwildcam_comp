@@ -10,7 +10,7 @@ from DeepTrap import evaluation, visualization, callback
 from DeepTrap.Generator import Generator
 
 #Set training or training
-mode_parser = argparse.ArgumentParser(description='DeepTrap Trainin')
+mode_parser = argparse.ArgumentParser(description='DeepTrap Training')
 mode_parser.add_argument('--debug', action="store_true")
 mode_parser.add_argument("-g", "--gpus", type=int, default=1, help="# of GPUs to use for training")
 mode =mode_parser.parse_args()
@@ -33,10 +33,11 @@ if mode.debug:
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
 
-#Mini test set for quick training
-traindf = train_df.groupby("category_id").apply(lambda x: x.head(n=100))
+#Ensure images exist
+train_df = utils.check_images(train_df, config["train_data_path"])
 
-test_df = utils.read_test_data(image_dir=config["test_data_path"])
+#Mini test set for quick training
+train_df = train_df.groupby("category_id", as_index=False).apply(lambda x: x.head(n=100)).reset_index()
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
@@ -56,6 +57,9 @@ model = resnet.Model(config)
 model.train(train_generator, evaluation_generator=evaluation_generator, callbacks=[evalution_callback])
 
 #Predict evaluation data
+
+test_df = utils.read_test_data(image_dir=config["test_data_path"])
+test_df = utils.check_images(test_df, config["test_data_path"])
 #Create evaluation generator for Idaho Data
 validation_generator = Generator(test_df, config=config, image_dir=config["test_data_path"],training=False)
 predictions = model.predict(validation_generator)
