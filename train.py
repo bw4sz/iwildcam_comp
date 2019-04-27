@@ -51,6 +51,10 @@ location_filter = training_split.groupby("location").size().sort_values().cumsum
 selected_locations = location_filter[location_filter==True].index.values
 training_split = training_split[training_split.location.isin(selected_locations)]
 
+#remove empty from set for testing.
+training_split = training_split[training_split.category_id!=0]
+evaluation_split =evaluation_split[evaluation_split.category_id!=0]
+
 #Log m
 train_generator = Generator(training_split, 
                             image_size=config["classification_model"]["image_size"],
@@ -77,7 +81,7 @@ test_df = utils.read_test_data(image_dir=config["test_data_path"])
 test_df = utils.check_images(test_df, config["test_data_path"])
 
 if not mode.debug:
-    test_df = test_df.sample(n=1000)
+    test_df = test_df.sample(n=100)
 
 #Create evaluation generator and predict
 validation_generator = Generator(test_df,
