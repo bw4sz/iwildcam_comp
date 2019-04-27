@@ -41,13 +41,17 @@ if mode.debug:
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
 
 #Ensure images exist
-train_df = utils.check_images(train_df, config["train_data_path"])
-
-#Mini test set for quick training
-train_df = train_df.groupby("category_id", as_index=False).apply(lambda x: x.head(n=2000)).reset_index()
+#train_df = utils.check_images(train_df, config["train_data_path"])
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
+
+#reduce training locations for temporary model checking, stop at 10000 images, but keep full locations.
+location_filter = training_split.groupby("location").size().sort_values().cumsum() < 10000 
+selected_locations = location_filter[location_filter==True].index.values
+training_split = training_split[training_split.location.isin(selected_locations)]
+
+#Log m
 train_generator = Generator(training_split, 
                             image_size=config["classification_model"]["image_size"],
                             batch_size=config["classification_model"]["batch_size"], 

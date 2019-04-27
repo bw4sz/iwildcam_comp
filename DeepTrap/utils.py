@@ -63,6 +63,9 @@ def read_test_data(image_dir):
         
     return test_df
 
+def miniset(train_df):
+    pass
+
 def split_training(train_df, image_dir):
     """Split the training data based on camera locations, as this most closely mirrors the competition goal"""
     #split on location data
@@ -70,7 +73,7 @@ def split_training(train_df, image_dir):
     unique_locations = train_df.location.drop_duplicates()
     
     #Split the first rows
-    training_locations = train_df.location.drop_duplicates().head(n=int(unique_locations.shape[0]*percent_training))    
+    training_locations = unique_locations.head(n=int(unique_locations.shape[0]*percent_training))    
     training_split = train_df[train_df.location.isin(training_locations)]
     evaluation_split  = train_df[~ train_df.location.isin(training_locations)]
     
