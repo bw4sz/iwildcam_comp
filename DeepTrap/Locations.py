@@ -40,7 +40,7 @@ for location in locations:
         
         #Create a background model
         bgmodel = BackgroundSubtraction.BackgroundModel(image_data)
-        bgmodel.run()
+        predictions = bgmodel.run()
         
         #save to new dir
         #filename = os.path.join(output_dir, image)

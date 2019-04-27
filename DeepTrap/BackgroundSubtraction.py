@@ -38,8 +38,9 @@ class BackgroundModel():
     def __init__(self,image_data):
         self.data = image_data
         self.wb = cv2.xphoto.createSimpleWB()
-        self.wb.setP(0.4)        
-    
+        self.wb.setP(0.4)
+        self.predictions = {}
+        
     def split_sequences(self):
         #unique ids
         unique_ids = list(self.data.seq_id.unique())
@@ -62,18 +63,17 @@ class BackgroundModel():
         
         return img_gray
     
-    def create_background(self, image_data):
+    def create_background(self, image_data):  
         
-        #Init model with running average and learn slowly from there.
-        # setting to 32-bit floating point 
-        sample_image = self.load_image(image_data.file_path.iloc[0])        
-        averageValue = np.float32(sample_image)         
-        
+        images = []
         for index, row in image_data.iterrows():
             img = self.load_image(row.file_path)
-            averageValue = cv2.accumulateWeighted(img, averageValue, 0.01)
-            median_background = cv2.convertScaleAbs(averageValue) 
-            
+            images.append(img)
+        
+        #Stack
+        images = np.dstack(images)
+        median_background = np.median(images, axis=2)
+        median_background = median_background.astype(np.uint8)
         return median_background
     
     def post_process(self,image):
@@ -154,13 +154,15 @@ class BackgroundModel():
         
         #Create background
         if is_sequence:
-            sequence_background = self.create_background(image_data)
             
             #list file paths - skip first image
             images_to_run = list(image_data.file_path)
             num_images = len(images_to_run)
             
             for index, image_path in enumerate(images_to_run):
+                
+                sequence_background = self.create_background(image_data[image_data.file_path !=image_path])
+                
                 image = self.load_image(image_path)
                 
                 #image threshold
@@ -173,7 +175,12 @@ class BackgroundModel():
                 
                 if len(boxes) > 0:
                     threshold_image = self.draw_box(threshold_image, boxes)
-                
+                else:
+                    #assign 
+                    for fname in image_data.file_name:
+                        print("{} has no detection boxes, labeling empty")
+                        self.predictions[fname] = "0"
+                    
                 #plot
                 plt.subplot(2,num_images,num_images + index+1)                
                 plt.imshow(threshold_image)
@@ -192,6 +199,8 @@ class BackgroundModel():
             #plot
             self.plot_sequence(sequence_data)
             self.run_sequence(sequence_data)
+        
+        return self.predictions
     
     def draw_box(self, image, boxes):
         
