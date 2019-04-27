@@ -19,16 +19,18 @@ class Model():
         
         #Define input shape
         self.input_shape = keras.layers.Input(shape)
-        self.model = self.load_model()
         
         #if multiple gpu
         num_gpu = config["classification_model"]["gpus"] 
         if num_gpu > 1:
             from keras.utils import multi_gpu_model
             with tf.device('/cpu:0'):     
-                self.model = multi_gpu_model(self.model, gpus=num_gpu)
+                self.model = self.load_model()                                
+            self.model = multi_gpu_model(self.model, gpus=num_gpu)
+        else:
+            self.model = self.load_model()            
         
-        #compilte
+        #compile
         self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
 
     def load_model(self):
