@@ -1,6 +1,9 @@
 #Deep Residual Network
 import numpy as np
-import keras_resnet.models
+from keras.applications.resnet50 import ResNet50
+from keras.models import Model as Keras_Model
+from keras.layers import Dense, GlobalAveragePooling2D
+
 import keras
 from keras.utils import get_file
 import tensorflow as tf
@@ -11,51 +14,41 @@ class Model():
     def __init__(self, config):
         self.config = config
         self.image_size = config["classification_model"]["image_size"]
-        shape, classes = (self.image_size , self.image_size , 3), len(utils.classes)
+        shape = (self.image_size , self.image_size , 3)
+        self.num_classes = len(utils.classes)
         
         #Define input shape
-        x = keras.layers.Input(shape)
+        self.input_shape = keras.layers.Input(shape)
+        self.model = self.load_model()
         
         #if multiple gpu
         num_gpu = config["classification_model"]["gpus"] 
         if num_gpu > 1:
             from keras.utils import multi_gpu_model
-            with tf.device('/cpu:0'):
-                self.model = keras_resnet.models.ResNet50(x, classes=classes)                
+            with tf.device('/cpu:0'):     
                 self.model = multi_gpu_model(self.model, gpus=num_gpu)
-        else:
-            self.model = keras_resnet.models.ResNet50(x, classes=classes)
-        self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
         
-        #Load imagenet weights
-        imagenet_weights = self.download_imagenet()
-        self.model.load_weights(imagenet_weights, by_name=True, skip_mismatch=True)
-    
-    def download_imagenet(self):
-        """ Downloads ImageNet weights and returns path to weights file.
-        From https://github.com/fizyr/keras-retinanet/blob/9f6ee78a67d27e5d6d9055c2a0da3803e03b290b/keras_retinanet/models/resnet.py
-        """
-        resnet_filename = 'ResNet-{}-model.keras.h5'
-        resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/{}'.format(resnet_filename)
-        #depth = int(self.backbone.replace('resnet', '')) #TODO allow different depths?
-        depth=50
+        #compilte
+        self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
 
-        filename = resnet_filename.format(depth)
-        resource = resnet_resource.format(depth)
-        if depth == 50:
-            checksum = '3e9f4e4f77bbe2c9bec13b53ee1c2319'
-        elif depth == 101:
-            checksum = '05dc86924389e5b401a9ea0348a3213c'
-        elif depth == 152:
-            checksum = '6ee11ef2b135592f8031058820bb9e71'
-
-        return get_file(
-            filename,
-            resource,
-            cache_subdir='models',
-            md5_hash=checksum
-        )
-    
+    def load_model(self):
+        
+        #load pretrained model
+        base_model = ResNet50(input_tensor=self.input_shape, weights='imagenet', include_top=False)        
+        
+        # add a global spatial average pooling layer
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        
+        #fully-connected layer
+        x = Dense(1024, activation='relu')(x)
+        
+        #Softmax prediction
+        predictions = Dense(self.num_classes, activation='softmax')(x)
+        model = Keras_Model(inputs=base_model.input, outputs=predictions)
+        
+        return model
+        
     def train(self, train_generator, callbacks=None, evaluation_generator=None):
                 
         self.model.fit_generator(
