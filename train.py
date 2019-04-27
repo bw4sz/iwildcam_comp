@@ -44,7 +44,7 @@ train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=
 train_df = utils.check_images(train_df, config["train_data_path"])
 
 #Mini test set for quick training
-train_df = train_df.groupby("category_id", as_index=False).apply(lambda x: x.head(n=100)).reset_index()
+train_df = train_df.groupby("category_id", as_index=False).apply(lambda x: x.head(n=500)).reset_index()
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
@@ -79,7 +79,8 @@ if not mode.debug:
 validation_generator = Generator(test_df,
                                  image_size=config["classification_model"]["image_size"],
                                  batch_size=config["classification_model"]["batch_size"], 
-                                 image_dir=config["test_data_path"],training=False)
+                                 image_dir=config["test_data_path"],
+                                 training=False)
 #predict
 predictions = model.predict(validation_generator)
 
@@ -91,7 +92,7 @@ predictions_label = [utils.classes[x] for x in predictions]
 if mode.debug:
     visualization.plot_images(validation_generator, predictions=predictions_label, n=2,annotations=False, show=False, experiment=experiment)
 else:
-    visualization.plot_images(validation_generator, predictions=predictions_label,n=50, annotations=False, show=False, experiment=experiment)    
+    visualization.plot_images(validation_generator, predictions=predictions_label,n=100, annotations=False, show=False, experiment=experiment)    
  
 #submission doc
 #if not mode.debug:

@@ -9,7 +9,7 @@ from vassal.terminal import Terminal
 train_df = pd.read_csv('../data/train.csv')
 
 #select a sequence for each class
-file_paths = train_df[train_df.location == 21].file_name
+file_paths = train_df[train_df.location == 128].file_name
 
 def read_config(prepend=None):
     filename="config.yaml"
