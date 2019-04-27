@@ -57,18 +57,20 @@ class Model():
             generator=train_generator,
             steps_per_epoch=train_generator.size()/self.config["classification_model"]["batch_size"],
             epochs=self.config["classification_model"]["epochs"],
-            verbose=2,
+            verbose=1,
             validation_data=evaluation_generator,
             shuffle=False,
             callbacks=callbacks,
-        use_multiprocessing = False)       
+        use_multiprocessing = True,
+        workers=2,
+        max_queue_size=2)       
             
     def predict(self, generator):
         
         #Check the remainder of the batch size, do batches that fit
-        predictions_batches = self.model.predict_generator(generator, max_queue_size=10, 
-                                    workers=1, 
-                                    use_multiprocessing=False, 
+        predictions_batches = self.model.predict_generator(generator, max_queue_size=20, 
+                                    workers=2, 
+                                    use_multiprocessing=True, 
                                     verbose=1)
         
         #construction the final batch seperately
