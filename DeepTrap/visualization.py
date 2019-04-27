@@ -113,7 +113,7 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     thresh = cm.max() / 2.
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
-            ax.text(j, i, format(cm[i, j], fmt),
+            ax.text(j, i, fontsize=9, format(cm[i, j], fmt),
                     ha="center", va="center",
                     color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
