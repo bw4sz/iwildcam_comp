@@ -39,7 +39,12 @@ class BackgroundModel():
         self.data = image_data
         self.wb = cv2.xphoto.createSimpleWB()
         self.wb.setP(0.4)
+        
+        #Empty predictions
         self.predictions = {}
+        
+        #Box predictions
+        self.box_predictions = {}
         
     def split_sequences(self):
         #unique ids
@@ -175,6 +180,8 @@ class BackgroundModel():
                 
                 if len(boxes) > 0:
                     threshold_image = self.draw_box(threshold_image, boxes)
+                    fname = image_data.iloc(index).file_name
+                    self.box_prediction[fname] = boxes
                 else:
                     #assign 
                     for fname in image_data.file_name:
@@ -182,9 +189,9 @@ class BackgroundModel():
                         self.predictions[fname] = "0"
                     
                 #plot
-                plt.subplot(2,num_images,num_images + index+1)                
-                plt.imshow(threshold_image)
-            plt.show()
+                #plt.subplot(2,num_images,num_images + index+1)                
+                #plt.imshow(threshold_image)
+            #plt.show()
         else:
             print("its not a sequence")
     

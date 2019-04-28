@@ -29,6 +29,9 @@ train_df = utils.check_images(train_df, config["train_data_path"])
 #Sort images into location
 locations  = BackgroundSubtraction.sort_locations(train_df)
 
+predicted_empty = []
+predicted_boxes = []
+
 for location in locations:
     for day_or_night in locations[location]:
             
@@ -40,11 +43,11 @@ for location in locations:
         
         #Create a background model
         bgmodel = BackgroundSubtraction.BackgroundModel(image_data)
-        predictions = bgmodel.run()
+        boxes = bgmodel.run()
         
-        #save to new dir
-        #filename = os.path.join(output_dir, image)
-        #cv2.imwrite(filename, foreground)
-        
+        #Side effect, those with no boxes are predicted empty
+        predicted_empty.append(bgmodel.predictions)
+        predicted_boxes.append(bgmodel.box_predictions)
+
         
         
