@@ -8,6 +8,7 @@ import keras
 from keras.utils import get_file
 import tensorflow as tf
 from .. import utils, preprocess
+from keras import backend as K
 
 class Model():
     
