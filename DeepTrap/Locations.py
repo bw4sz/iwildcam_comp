@@ -42,7 +42,7 @@ for location in locations:
         image_data = image_data.sort_values("date_captured")
         
         #Create a background model
-        bgmodel = BackgroundSubtraction.BackgroundModel(image_data)
+        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night )
         boxes = bgmodel.run()
         
         #Side effect, those with no boxes are predicted empty
