@@ -25,7 +25,6 @@ def sort_locations(data):
         #Split into nested dict by location and daynight
     location_dict = {}
     for i in data["location"].unique():
-        print(i)
         location_data = data[data.location == i]
         location_dict[i] = {}        
         for j in location_data["day_night"].unique():
@@ -68,14 +67,31 @@ class BackgroundModel():
         
         return img_gray
     
-    def create_background(self, image_data):  
+    def resize_sequence(self, images, shape):
+        """for a set of images, resize to target size if needed
+        images: a list of numpy images
+        shape: a numpy shape target object
+        """
+        for index, image in enumerate(images):
+            if image.shape != shape:
+                    images[index] = cv2.resize(image, (width,height))
+        return images
+        
+    def create_background(self, image_data, target_shape):  
+        """
+        Generate a temporal median image
+        image_data: pandas dataframe
+        target_shape: reshape if within location shape varies among images.
+        """
         
         images = []
         for index, row in image_data.iterrows():
             img = self.load_image(row.file_path)
             images.append(img)
         
-        #Stack
+        #Check image shapes, optionally resize
+        images = self.resize_sequence(images, target_shape)        
+        #Stack images into a single array
         images = np.dstack(images)
         median_background = np.median(images, axis=2)
         median_background = median_background.astype(np.uint8)
@@ -153,60 +169,106 @@ class BackgroundModel():
         
     def run_sequence(self, image_data):
         """apply background subtraction to a set of images"""
+
+        #list file paths - skip first image
+        images_to_run = list(image_data.file_path)
+        num_images = len(images_to_run)
         
-        #Does the image come from a sequence?
-        is_sequence = image_data.shape[0] > 1
-        
-        #Create background
-        if is_sequence:
+        for index, image_path in enumerate(images_to_run):
             
-            #list file paths - skip first image
-            images_to_run = list(image_data.file_path)
-            num_images = len(images_to_run)
+            #Load image
+            image = self.load_image(image_path)
             
-            for index, image_path in enumerate(images_to_run):
+            #temporal median 
+            sequence_background = self.create_background(image_data[image_data.file_path !=image_path], target_shape=image.shape)
+            
+            #image threshold
+            threshold_image = self.apply(sequence_background, image)
+            
+            #get bounding box
+            boxes = self.find_bounding_box(threshold_image)
+            
+            print("{} boxes found".format(len(boxes)))
+            
+            if len(boxes) > 0:
+                threshold_image = self.draw_box(threshold_image, boxes)
+                fname = image_data.iloc[index].file_name
+                self.box_predictions[fname] = boxes
+            else:
+                #assign 
+                for fname in image_data.file_name:
+                    print("{} has no detection boxes, labeling empty".format(fname))
+                    self.predictions[fname] = "0"
                 
-                sequence_background = self.create_background(image_data[image_data.file_path !=image_path])
-                
-                image = self.load_image(image_path)
-                
-                #image threshold
-                threshold_image = self.apply(sequence_background, image)
-                
-                #get bounding box
-                boxes = self.find_bounding_box(threshold_image)
-                
-                print("{} boxes found".format(len(boxes)))
-                
-                if len(boxes) > 0:
-                    threshold_image = self.draw_box(threshold_image, boxes)
-                    fname = image_data.iloc(index).file_name
-                    self.box_prediction[fname] = boxes
-                else:
-                    #assign 
-                    for fname in image_data.file_name:
-                        print("{} has no detection boxes, labeling empty")
-                        self.predictions[fname] = "0"
-                    
-                #plot
-                #plt.subplot(2,num_images,num_images + index+1)                
-                #plt.imshow(threshold_image)
-            #plt.show()
-        else:
-            print("its not a sequence")
+            #plot
+            #plt.subplot(2,num_images,num_images + index+1)                
+            #plt.imshow(threshold_image)
+        #plt.show()
     
+    def run_single(self, image_data):
+        """image_data: The sequence level pandas data table"""
+        #list file paths - skip first image
+        images_to_run = list(image_data.file_path)
+        num_images = len(images_to_run)
+        
+        for index, image_path in enumerate(images_to_run):
+            #Loag target image
+            image = self.load_image(image_path)
+            
+            #Create a background from the entire location image_object, except for target image
+            background_data = self.data[self.data.file_path != image_path]
+            
+            #There can be alot of images in location, limit for sake of memory
+            if background_data.shape[0] > 100:
+                background_data = background_data.sample(n=100)
+                
+            #Remove taget image
+            sequence_background = self.create_background(background_data, target_shape=image.shape)
+            
+            #image threshold
+            threshold_image = self.apply(sequence_background, image)
+            
+            #get bounding box
+            boxes = self.find_bounding_box(threshold_image)
+            
+            print("{} boxes found".format(len(boxes)))
+            
+            if len(boxes) > 0:
+                threshold_image = self.draw_box(threshold_image, boxes)
+                fname = image_data.iloc[index].file_name
+                self.box_predictions[fname] = boxes
+            else:
+                #assign 
+                for fname in image_data.file_name:
+                    print("{} has no detection boxes, labeling empty".format(fname))
+                    self.predictions[fname] = "0"
+                
+            #plot
+            plt.subplot(2,num_images,num_images + index+1)                
+            plt.imshow(threshold_image)
+        plt.show()
+        
     def run(self):
         
         #split into sequences
         sequence_dict = self.split_sequences()
         
         for sequence in sequence_dict:
-            sequence_data = sequence_dict[sequence]
             
-            #plot
-            self.plot_sequence(sequence_data)
-            self.run_sequence(sequence_data)
-        
+            #Get image data
+            image_data = sequence_dict[sequence]
+           
+            #Burst set of images?
+            is_sequence = image_data.shape[0] > 1
+
+            if is_sequence:
+                self.run_sequence(image_data)
+            else:
+                #Get a global background model
+                self.plot_sequence(image_data)                  
+                self.run_single(image_data)
+                
+                                          
         return self.predictions
     
     def draw_box(self, image, boxes):
