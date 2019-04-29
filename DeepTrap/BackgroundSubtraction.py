@@ -236,10 +236,10 @@ class BackgroundModel():
             img_rgb = self.draw_box(img_rgb, [selected_box])     
             
             #plot
-            index = np.argmax(np.array(selected_image) == images_to_run)
-            plt.subplot(2,num_images,num_images + index+1)                
-            plt.imshow(img_rgb)
-            plt.show()                
+            #index = np.argmax(np.array(selected_image) == images_to_run)
+            #plt.subplot(2,num_images,num_images + index+1)                
+            #plt.imshow(img_rgb)
+            #plt.show()                
                            
             return {selected_image: selected_box}
         
@@ -283,9 +283,9 @@ class BackgroundModel():
                     self.predictions[fname] = 0
                 
         #plot
-        plt.subplot(2,num_images,num_images + index+1)                
-        plt.imshow(threshold_image)
-        plt.show()
+        #plt.subplot(2,num_images,num_images + index+1)                
+        #plt.imshow(threshold_image)
+        #plt.show()
         
     def run(self):
         
@@ -307,10 +307,9 @@ class BackgroundModel():
             #Burst set of images?
             is_sequence = image_data.shape[0] > 1
 
-            self.plot_sequence(image_data)                  
+            #self.plot_sequence(image_data)                  
             if is_sequence:
                 selected_image_dict = self.run_sequence(image_data)
-
             else:
                 #Get a global background model
                 selected_image_dict = self.run_single(image_data)

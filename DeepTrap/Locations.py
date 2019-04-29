@@ -6,6 +6,7 @@ import numpy as np
 
 import BackgroundSubtraction
 import utils
+import Detector
 
 
 #Read and log config file
@@ -47,8 +48,12 @@ for location in locations:
         #Select representative images based on temporal median difference
         target_images = bgmodel.run()
         
-        #crop images based on Megadetector intersecting with temporal median box
-        #image_crop = megadetector.crop(target_images)
+        for sequence in target_images:
+            image_dict = target_images[sequence]
+            for file_name in image_dict:
+                image_crop = Detector.run_crop(file_name = file_name , box=image_dict[file_name])
+                
+            #crop images based on Megadetector intersecting with temporal median box
         
         #Write tfrecords
         
