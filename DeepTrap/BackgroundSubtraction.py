@@ -16,7 +16,7 @@ def sort_locations(data):
             date_object = datetime.strptime(data.date_captured[index] , "%Y-%m-%d %H:%M:%S")
         except:
             data.at[index,'day_night'] = "day"
-        is_day = date_object.hour  > 7 and date_object.hour  < 18
+        is_day = date_object.hour  > 8 and date_object.hour  < 17
         if is_day:
             data.at[index,'day_night'] = "day"
         else:
@@ -54,9 +54,9 @@ class BackgroundModel():
         
         #Set min threshold
         if day_or_night == "day":
-            self.min_threshold = 45
+            self.min_threshold = 30
         else:
-            self.min_threshold = 20
+            self.min_threshold = 5
         
     def split_sequences(self):
         """Divide pandas dataframe into dictionary of sequences of images"""
@@ -117,7 +117,7 @@ class BackgroundModel():
     
     def post_process(self,image):
         #Erode to remove noise, dilate the areas to merge bounded objects
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(13,13))
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7))
         image= cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel,iterations=2)
         
         return image
@@ -190,15 +190,17 @@ class BackgroundModel():
         return bounding_boxes
         
     def run_sequence(self, image_data):
-        """apply background subtraction to a set of images"""
+        """apply background subtraction to a set of images
+        return a doct the image (with boxes) in the sequence with the largest bounding box {file_name} -> box
+        """
 
         #list file paths - skip first image
         images_to_run = list(image_data.file_path)
         num_images = len(images_to_run)
         
-        sequence_boxes = []
+        #Container for output boxes
+        sequence_boxes = {}
         for index, image_path in enumerate(images_to_run):
-            
             #Load image
             image = self.load_image(image_path)
             
@@ -208,30 +210,44 @@ class BackgroundModel():
             #image threshold - threshold based on day night
             threshold_image = self.apply(sequence_background, image, self.min_threshold )
             
-            #get bounding box and append to sequence list
+            #get bounding box and append to sequence dict
             boxes = self.find_bounding_box(threshold_image)
-            sequence_boxes.append(boxes)
-            print("{} boxes found".format(len(boxes)))
+            if boxes:
+                #Select largest box
+                areas =[x.w * x.h for x in boxes]
+                largest_box = np.argmax(areas)
+                sequence_boxes[image_path] = boxes[largest_box]
             
-            if len(boxes) > 0:
-                threshold_image = self.draw_box(threshold_image, boxes)
-                fname = image_data.iloc[index].file_name
-                self.box_predictions[fname] = boxes
-        
+        if sequence_boxes:
+            #Find areas of largest box in sequence and select image
+            area_boxes = {}
+            for image in sequence_boxes:
+                bounding_box = sequence_boxes[image]
+                area = bounding_box.w * bounding_box.h
+                area_boxes[image] = area
+                
+            #Select largest box
+            selected_image = max(area_boxes, key=area_boxes.get)
+            selected_box = sequence_boxes[selected_image]
+                
+            #Add to plot
+            image = cv2.imread(selected_image)
+            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)            
+            img_rgb = self.draw_box(img_rgb, [selected_box])     
+            
             #plot
+            index = np.argmax(np.array(selected_image) == images_to_run)
             plt.subplot(2,num_images,num_images + index+1)                
-            plt.imshow(threshold_image)
-        plt.show()
-            
-        #If sequence has no boxes, predict all empty.
-        if len(sequence_boxes) ==0:
-            #assign 0 to entire sequence
+            plt.imshow(img_rgb)
+            plt.show()                
+                           
+            return {selected_image: selected_box}
+        
+        else:
+            #If sequence has no boxes, predict all empty.            
             for fname in image_data.file_name:
-                print("{} has no detection boxes, labeling sequence empty".format(fname))
-                self.predictions[fname] = "0"
-            
-
-    
+                self.predictions[fname] = 0
+        
     def run_single(self, image_data):
         """image_data: The sequence level pandas data table"""
         #list file paths - skip first image
@@ -258,28 +274,31 @@ class BackgroundModel():
             #get bounding box
             boxes = self.find_bounding_box(threshold_image)
             
-            print("{} boxes found".format(len(boxes)))
-            
-            if len(boxes) > 0:
-                threshold_image = self.draw_box(threshold_image, boxes)
-                fname = image_data.iloc[index].file_name
-                self.box_predictions[fname] = boxes
+            if boxes:
+                threshold_image = self.draw_box(threshold_image, boxes)                 
+                return {image_path: boxes}
             else:
-                #assign 
+                #assign to empty
                 for fname in image_data.file_name:
-                    print("{} has no detection boxes, labeling empty".format(fname))
-                    self.predictions[fname] = "0"
+                    self.predictions[fname] = 0
                 
-            #plot
-            plt.subplot(2,num_images,num_images + index+1)                
-            plt.imshow(threshold_image)
+        #plot
+        plt.subplot(2,num_images,num_images + index+1)                
+        plt.imshow(threshold_image)
         plt.show()
         
     def run(self):
         
+        #Container for target images and boxes (file_name -> box)
+        target_images = {}
+        
         #split into sequences
         sequence_dict = self.split_sequences()
         
+        print("{} sequences found".format(len(sequence_dict)))
+        
+        #target images container
+        target_images = {}
         for sequence in sequence_dict:
             
             #Get image data
@@ -290,19 +309,22 @@ class BackgroundModel():
 
             self.plot_sequence(image_data)                  
             if is_sequence:
-                self.run_sequence(image_data)
+                selected_image_dict = self.run_sequence(image_data)
+
             else:
                 #Get a global background model
-                self.run_single(image_data)
-                
-                                          
-        return self.predictions
+                selected_image_dict = self.run_single(image_data)
+            
+            #Store desired target image and crop for each sequence. Skip if empty
+            if selected_image_dict:
+                target_images[sequence] = selected_image_dict
+    
+        return target_images
     
     def draw_box(self, image, boxes):
-        
         for bounding_box in boxes:
             cv2.rectangle(image, (bounding_box.x, bounding_box.y+bounding_box.h),
-                          (bounding_box.x + bounding_box.w, bounding_box.y), 100, 4)
+                          (bounding_box.x + bounding_box.w, bounding_box.y), (255,0,0), 5)
         return image
             
     def plot_sequence(self, image_data):

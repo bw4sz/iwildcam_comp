@@ -41,13 +41,23 @@ for location in locations:
         #sort by timestamp
         image_data = image_data.sort_values("date_captured")
         
-        #Create a background model
+        #Create a background model object for camera location of sequences
         bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night )
-        boxes = bgmodel.run()
+        
+        #Select representative images based on temporal median difference
+        target_images = bgmodel.run()
+        
+        #crop images based on Megadetector intersecting with temporal median box
+        #image_crop = megadetector.crop(target_images)
+        
+        #Write tfrecords
         
         #Side effect, those with no boxes are predicted empty
         predicted_empty.append(bgmodel.predictions)
-        predicted_boxes.append(bgmodel.box_predictions)
+        
+#Save predicted empty based on temporal median
+#Convert to dataframe and save
+#predicted_empty
 
         
         
