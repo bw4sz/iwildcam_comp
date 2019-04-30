@@ -105,7 +105,7 @@ class Generator(keras.utils.Sequence):
         #Find the original data and crop
         self.label = self.image_dict[image_index][self.label_name]
         
-        #turn to categorical? not sure
+        #turn to categorical
         categorical_label = keras.utils.np_utils.to_categorical(self.label, num_classes=len(self.classes))
         
         return categorical_label
