@@ -112,6 +112,9 @@ class Generator(keras.utils.Sequence):
         #reset location for easy loading
         self.previous_location = location
         
+        #Try enforcing int type
+        self.image = self.image.astype(int)
+        
         return self.image
     
     def load_annotation(self, image_index):
@@ -125,7 +128,7 @@ class Generator(keras.utils.Sequence):
         self.label = self.hf["labels"][h5_index,...]
         
         categorical_label = keras.utils.np_utils.to_categorical(self.label, num_classes=len(self.classes))
-        
+        categorical_label=categorical_label.astype(int)
         return categorical_label
     
     def load_annotations_group(self, group):

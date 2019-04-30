@@ -33,7 +33,7 @@ def start_tunnel():
     #flush system
     sys.stdout.flush()
 
-def run_HPC(data_paths):
+def run_HPC(locations):
         
     #################
     # Setup dask cluster
@@ -68,10 +68,8 @@ def run_HPC(data_paths):
         
     #Start dask
     dask_client.run_on_scheduler(start_tunnel)  
-    
-    for location in locations:
-        futures = dask_client.map(Locations.preprocess_location, locations[location])
-        wait(futures)
+    futures = dask_client.map(Locations.preprocess_location, locations)
+    wait(futures)
     
     #TODO print futures in such a way to see result.
 

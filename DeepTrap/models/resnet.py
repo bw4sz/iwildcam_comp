@@ -63,9 +63,9 @@ class Model():
             validation_data=evaluation_generator,
             shuffle=False,
             callbacks=callbacks,
-        use_multiprocessing = True,
-        workers=2,
-        max_queue_size=2)       
+            use_multiprocessing = True,
+            workers=2,
+            max_queue_size=10)       
             
     def predict(self, generator):
         
