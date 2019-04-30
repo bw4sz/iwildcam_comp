@@ -73,6 +73,7 @@ class BackgroundModel():
         img = cv2.imread(path)
         img = self.preprocess(img)
         
+        #Check size        
         return img
         
     def preprocess(self, img):
@@ -89,7 +90,7 @@ class BackgroundModel():
         """
         for index, image in enumerate(images):
             if image.shape != shape:
-                height, width = shape
+                height, width, channels = shape
                 images[index] = cv2.resize(image, (width, height))
         return images
         
@@ -211,7 +212,6 @@ class BackgroundModel():
             label = image_data[image_data.file_path == image_path].category_id.values[0]
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
             
-                
         return ([threshold_image], [label], [filename])
                 
         ##plot

@@ -5,13 +5,14 @@ train_detections: /Users/ben/Dropbox/DeepTrap/CCT_Detection_Results_2.p
 
 #Preprocessing
 h5_dir: /orange/ewhite/b.weinstein/CameraTrap/preprocessed/
+height: 249
+width: 340
 
 #Training
 bgmodel:
     epochs: 1
     batch_size: 1
 classification_model:
-    image_size: 299
     gpus: 1
     epochs: 10
     batch_size: 32

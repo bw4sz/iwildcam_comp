@@ -14,8 +14,9 @@ class Model():
     
     def __init__(self, config):
         self.config = config
-        self.image_size = config["classification_model"]["image_size"]
-        shape = (self.image_size , self.image_size , 3)
+        self.image_height = config["height"]
+        self.image_width = config["width"]
+        shape = (self.image_height , self.image_width , 3)
         self.num_classes = len(utils.classes)
         
         #Define input shape

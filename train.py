@@ -12,7 +12,7 @@ from datetime import datetime
 from DeepTrap import utils
 from DeepTrap.models import resnet
 from DeepTrap import evaluation, visualization, callback
-from DeepTrap.Generator import Generator
+from DeepTrap.H5Generator import Generator
 
 #Set training or training
 mode_parser = argparse.ArgumentParser(description='DeepTrap Training')
@@ -31,11 +31,12 @@ experiment.log_parameters(prefix= "bgmodel", dic=config["bgmodel"])
 
 #use local image copy
 if mode.debug:
-    config["train_data_path"] = "tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images/"
+    config["train_data_path"] = "tests/data/sample_location/"
     config["test_data_path"] = "tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
     config["classification_model"]["epochs"] = 1
     config["classification_model"]["batch_size"] =3
     config["classification_model"]["gpu"] = 1
+    config["h5_dir"] = "/Users/Ben/Downloads/"
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
@@ -57,14 +58,12 @@ evaluation_split =evaluation_split[evaluation_split.category_id!=0]
 
 #Log m
 train_generator = Generator(training_split, 
-                            image_size=config["classification_model"]["image_size"],
                             batch_size=config["classification_model"]["batch_size"], 
-                            image_dir=config["train_data_path"])
+                            h5_dir=config["h5_dir"])
 
 evaluation_generator = Generator(evaluation_split,
-                            image_size=config["classification_model"]["image_size"],
                             batch_size=config["classification_model"]["batch_size"], 
-                            image_dir=config["train_data_path"])
+                            h5_dir=config["h5_dir"])
 
 #Create callbacks
 evalution_callback = callback.Evaluate(evaluation_generator, experiment)

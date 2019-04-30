@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
+#DeepTrap
 import BackgroundSubtraction
 import utils
 import Detector
@@ -52,9 +53,10 @@ if __name__=="__main__":
         config["train_data_path"] = "../tests/data/sample_location"
         config["h5_dir"] = "/Users/Ben/Downloads/"
     
-        #check for image dir
-        #if not os.path.exists(output_dir):
-            #os.mkdir(output)
+    #check for image dir
+    #if not os.path.exists(output_dir):
+        #os.mkdir(output)
+            
     #Load data
     train_df = pd.read_csv('../data/train.csv')
     train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
