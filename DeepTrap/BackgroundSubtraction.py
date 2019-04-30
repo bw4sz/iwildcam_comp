@@ -79,9 +79,9 @@ class BackgroundModel():
     def preprocess(self, img):
         """White balance and change color space"""
         img_wb = self.wb.balanceWhite(img)
-        img_gray = cv2.cvtColor(img_wb,cv2.COLOR_BGR2GRAY)  
-        
-        return img_gray
+        img_YCrCb = cv2.cvtColor(img_wb,cv2.COLOR_BGR2YCrCb)  
+                
+        return img_YCrCb
     
     def resize_sequence(self, images, shape):
         """for a set of images, resize to target size if needed
@@ -100,7 +100,7 @@ class BackgroundModel():
         image_data: pandas dataframe
         target_shape: reshape if within location shape varies among images.
         """
-        
+            
         images = []
         for index, row in image_data.iterrows():
             img = self.load_image(row.file_path)
@@ -110,15 +110,27 @@ class BackgroundModel():
         images = self.resize_sequence(images, target_shape)        
         
         #Stack images into a single array
-        images = np.dstack(images)
-        median_background = np.median(images, axis=2)
+        images = np.stack(images)
+        median_background = np.median(images, axis=0)
         median_background = median_background.astype(np.uint8)
         return median_background
     
     def post_process(self,image):
-        #Erode to remove noise, dilate the areas to merge bounded objects
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7))
-        image= cv2.morphologyEx(image, cv2.MORPH_OPEN, kernel,iterations=2)
+        """Assumes YCrCB color space
+        """
+        
+        #Scale just the luminance
+        image[:,:,0] = image[:,:,0]  - image[:,:,0].mean()
+    
+        #remove negative values
+        image *= (image>0)
+        
+        #divide by max and scale to 0-255 for each channel
+        image[:,:,0] = image[:,:,0] / image[:,:,0].max() * 255
+        image[:,:,1] = image[:,:,1] / image[:,:,1].max() * 255
+        image[:,:,2] = image[:,:,2] / image[:,:,2].max() * 255
+        
+        image = cv2.medianBlur(image, 7)
         
         return image
     
@@ -172,12 +184,12 @@ class BackgroundModel():
     
     def apply(self, background, image, min_threshold):
         """subtract an image from background and convert to 0-1"""
+        
         #Background subtractions
         foreground = cv2.absdiff(background, image)
         
-        #Set to 0 1. 
-        thresh = cv2.threshold(foreground, min_threshold, 255, cv2.THRESH_BINARY)[1]        
-        thresh = self.post_process(thresh)
+        #Mean center
+        thresh = self.post_process(foreground)
         
         return thresh
     
@@ -209,44 +221,21 @@ class BackgroundModel():
             
             #image threshold - threshold based on day night
             threshold_image = self.apply(sequence_background, image, self.min_threshold )
-            
-            #get bounding box and append to sequence dict
-            boxes = self.find_bounding_box(threshold_image)
-            if boxes:
-                #Select largest box
-                areas =[x.w * x.h for x in boxes]
-                largest_box = np.argmax(areas)
-                sequence_boxes[image_path] = boxes[largest_box]
-            
-        if sequence_boxes:
-            #Find areas of largest box in sequence and select image
-            area_boxes = {}
-            for image in sequence_boxes:
-                bounding_box = sequence_boxes[image]
-                area = bounding_box.w * bounding_box.h
-                area_boxes[image] = area
                 
-            #Select largest box
-            selected_image = max(area_boxes, key=area_boxes.get)
-            selected_box = sequence_boxes[selected_image]
-                
-            #Add to plot
-            image = cv2.imread(selected_image)
-            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)            
-            img_rgb = self.draw_box(img_rgb, [selected_box])     
+            #grab label
             
+                       
             #plot
-            #index = np.argmax(np.array(selected_image) == images_to_run)
-            #plt.subplot(2,num_images,num_images + index+1)                
-            #plt.imshow(img_rgb)
-            #plt.show()                
+            plt.subplot(2,num_images,num_images + index+1)                
+            plt.imshow(threshold_image[:,:,0:])
+        plt.show()                
                            
-            return {selected_image: selected_box}
+            #return (threshold_image, label)
         
-        else:
-            #If sequence has no boxes, predict all empty.            
-            for fname in image_data.file_name:
-                self.predictions[fname] = 0
+        #else:
+            ##If sequence has no boxes, predict all empty.            
+            #for fname in image_data.file_name:
+                #self.predictions[fname] = 0
         
     def run_single(self, image_data):
         """image_data: The sequence level pandas data table"""
@@ -273,20 +262,15 @@ class BackgroundModel():
             threshold_image = self.apply(sequence_background, image, min_threshold=self.min_threshold)
             
             #get bounding box
-            boxes = self.find_bounding_box(threshold_image)
-            
-            if boxes:
-                threshold_image = self.draw_box(threshold_image, boxes)                 
-                return {image_path: boxes}
-            else:
-                #assign to empty
-                for fname in image_data.file_name:
-                    self.predictions[fname] = 0
+            #else:
+                ##assign to empty
+                #for fname in image_data.file_name:
+                    #self.predictions[fname] = 0
                 
         #plot
-        #plt.subplot(2,num_images,num_images + index+1)                
-        #plt.imshow(threshold_image)
-        #plt.show()
+        plt.subplot(2,num_images,num_images + index+1)                
+        plt.imshow(threshold_image[:,:,0:])
+        plt.show()
         
     def run(self):
         
@@ -308,7 +292,7 @@ class BackgroundModel():
             #Burst set of images?
             is_sequence = image_data.shape[0] > 1
 
-            #self.plot_sequence(image_data)                  
+            self.plot_sequence(image_data)                  
             if is_sequence:
                 selected_image_dict = self.run_sequence(image_data)
             else:

@@ -29,8 +29,8 @@ train_df = utils.check_images(train_df, config["train_data_path"])
 #Sort images into location
 locations  = BackgroundSubtraction.sort_locations(train_df)
 
-predicted_empty = []
-predicted_boxes = []
+results = []
+predicted_empty= []
 
 for location in locations:
     for day_or_night in locations[location]:
@@ -46,13 +46,9 @@ for location in locations:
         
         #Select representative images based on temporal median difference
         target_images = bgmodel.run()
-        
-        for sequence in target_images:
-            image_dict = target_images[sequence]
-            for file_name in image_dict:
-                image_crop = Detector.run_crop(file_name = file_name , box=image_dict[file_name])
-                
+
             #crop images based on Megadetector intersecting with temporal median box
+        
         
         #Write tfrecords
         
