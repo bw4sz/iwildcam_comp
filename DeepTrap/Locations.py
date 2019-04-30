@@ -8,7 +8,6 @@ import BackgroundSubtraction
 import utils
 import Detector
 
-
 #Read and log config file
 config = utils.read_config(prepend="..")
 output_dir = config["output_dir"]
@@ -63,6 +62,3 @@ for location in locations:
 #Save predicted empty based on temporal median
 #Convert to dataframe and save
 #predicted_empty
-
-        
-        

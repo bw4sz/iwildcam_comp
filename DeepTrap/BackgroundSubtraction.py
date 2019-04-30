@@ -250,6 +250,7 @@ class BackgroundModel():
         
     def run_single(self, image_data):
         """image_data: The sequence level pandas data table"""
+        
         #list file paths - skip first image
         images_to_run = list(image_data.file_path)
         num_images = len(images_to_run)
