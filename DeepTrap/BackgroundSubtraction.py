@@ -4,7 +4,6 @@ import cv2
 from datetime import datetime
 from matplotlib import pyplot as plt
 import numpy as np
-from Geometry import *
 
 #Start a background subtraction object
 def sort_locations(data):
@@ -134,56 +133,8 @@ class BackgroundModel():
         
         return image
     
-    def get_parent_bounding_box(self, bounding_boxes, index):
-        for bounding_box in bounding_boxes:
-            if index in bounding_box.members:
-                return bounding_box
-            
-        return None
-    
-    def find_contours(self, image):
-        """Compute contours from threshold images and remove small boxes"""
-        contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE )
-        contours = [contour for contour in contours if cv2.contourArea(contour) > 50]
-        
-        return contours
-        
-    def extend_rectangle(self, rect1, rect2):
-        x = min(rect1.l_top.x, rect2.l_top.x)
-        y = min(rect1.l_top.y, rect2.l_top.y)
-        w = max(rect1.r_top.x, rect2.r_top.x) - x
-        h = max(rect1.r_bot.y, rect2.r_bot.y) - y
-        
-        return Rect(x, y, w, h)
-    
-    def cluster_bounding_boxes(self, contours):
-        bounding_boxes = []
-        
-        #For each contour, get a bounding box
-        for i in range(len(contours)):
-            x1,y1,w1,h1 = cv2.boundingRect(contours[i])
-
-            parent_bounding_box = self.get_parent_bounding_box(bounding_boxes, i)
-            if parent_bounding_box is None:
-                parent_bounding_box = BoundingBox(Rect(x1, y1, w1, h1))
-                parent_bounding_box.members.append(i)
-                bounding_boxes.append(parent_bounding_box)
-
-            for j in range(i+1, len(contours)):
-                if self.get_parent_bounding_box(bounding_boxes, j) is None:
-                    x2,y2,w2,h2 = cv2.boundingRect(contours[j])
-                    rect = Rect(x2, y2, w2, h2)
-                    distance = parent_bounding_box.rect.distance_to_rect(rect)
-                    
-                    #Combine close boxes.
-                    if distance < 200:
-                        parent_bounding_box.update_rect(self.extend_rectangle(parent_bounding_box.rect, rect))
-                        parent_bounding_box.members.append(j)
-                        
-        return bounding_boxes
-    
     def apply(self, background, image, min_threshold):
-        """subtract an image from background and convert to 0-1"""
+        """subtract an image from background and convert to colorspace"""
         
         #Background subtractions
         foreground = cv2.absdiff(background, image)
@@ -192,14 +143,6 @@ class BackgroundModel():
         thresh = self.post_process(foreground)
         
         return thresh
-    
-    def find_bounding_box(self,image):
-        """Draw bounding boxes for a threshold image"""
-        
-        contours = self.find_contours(image)
-        bounding_boxes = self.cluster_bounding_boxes(contours)       
-        
-        return bounding_boxes
         
     def run_sequence(self, image_data):
         """apply background subtraction to a set of images
@@ -211,7 +154,10 @@ class BackgroundModel():
         num_images = len(images_to_run)
         
         #Container for output boxes
-        sequence_boxes = {}
+        subtracted_images = [ ]
+        labels = []
+        filenames = []
+        
         for index, image_path in enumerate(images_to_run):
             #Load image
             image = self.load_image(image_path)
@@ -221,21 +167,21 @@ class BackgroundModel():
             
             #image threshold - threshold based on day night
             threshold_image = self.apply(sequence_background, image, self.min_threshold )
-                
-            #grab label
+            subtracted_images.append(threshold_image)
             
-                       
+            #grab label
+            label = image_data[image_data.file_path == image_path].category_id.values[0]
+            filename = image_data[image_data.file_path == image_path].file_name.values[0]
+            
+            labels.append(label)
+            filenames.append(filename)
+            
             #plot
-            plt.subplot(2,num_images,num_images + index+1)                
-            plt.imshow(threshold_image[:,:,0:])
-        plt.show()                
+            #plt.subplot(2,num_images,num_images + index+1)                
+            #plt.imshow(threshold_image[:,:,0:])
+        #plt.show()                
                            
-            #return (threshold_image, label)
-        
-        #else:
-            ##If sequence has no boxes, predict all empty.            
-            #for fname in image_data.file_name:
-                #self.predictions[fname] = 0
+        return (subtracted_images, labels, filenames)
         
     def run_single(self, image_data):
         """image_data: The sequence level pandas data table"""
@@ -261,29 +207,30 @@ class BackgroundModel():
             #image threshold
             threshold_image = self.apply(sequence_background, image, min_threshold=self.min_threshold)
             
-            #get bounding box
-            #else:
-                ##assign to empty
-                #for fname in image_data.file_name:
-                    #self.predictions[fname] = 0
+            #grab label and filename
+            label = image_data[image_data.file_path == image_path].category_id.values[0]
+            filename = image_data[image_data.file_path == image_path].file_name.values[0]            
+            
                 
-        #plot
-        plt.subplot(2,num_images,num_images + index+1)                
-        plt.imshow(threshold_image[:,:,0:])
-        plt.show()
+        return ([threshold_image], [label], [filename])
+                
+        ##plot
+        #plt.subplot(2,num_images,num_images + index+1)                
+        #plt.imshow(threshold_image[:,:,0:])
+        #plt.show()
         
     def run(self):
         
-        #Container for target images and boxes (file_name -> box)
-        target_images = {}
+        #Container for target images and labels
+        images = []
+        labels = []
+        filenames = []
         
         #split into sequences
         sequence_dict = self.split_sequences()
-        
         print("{} sequences found".format(len(sequence_dict)))
         
         #target images container
-        target_images = {}
         for sequence in sequence_dict:
             
             #Get image data
@@ -292,18 +239,21 @@ class BackgroundModel():
             #Burst set of images?
             is_sequence = image_data.shape[0] > 1
 
-            self.plot_sequence(image_data)                  
+            #self.plot_sequence(image_data)                  
             if is_sequence:
-                selected_image_dict = self.run_sequence(image_data)
+                #Run background subtraction
+                seq_images, seq_labels, seq_filenames = self.run_sequence(image_data)
             else:
-                #Get a global background model
-                selected_image_dict = self.run_single(image_data)
-            
-            #Store desired target image and crop for each sequence. Skip if empty
-            if selected_image_dict:
-                target_images[sequence] = selected_image_dict
-    
-        return target_images
+                #Get a global background model and individual image
+                seq_images, seq_labels, seq_filenames = self.run_single(image_data)
+                
+            #Add to a flat list of results
+            for i in range(len(seq_images)):
+                images.append(seq_images[i])
+                labels.append(seq_labels[i])
+                filenames.append(seq_filenames[i])
+
+        return images, labels, filenames
     
     def draw_box(self, image, boxes):
         for bounding_box in boxes:
@@ -323,17 +273,3 @@ class BackgroundModel():
             image = cv2.imread(path)
             img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)            
             plt.imshow(img_rgb)
-
-class BoundingBox:
-    def update_rect(self, rect):
-        self.rect = rect
-        self.x = rect.l_top.x
-        self.y = rect.l_top.y
-        self.w = rect.width
-        self.h = rect.height
-        self.time=None
-        self.label=(None,None)
-
-    def __init__(self, rect):
-        self.update_rect(rect)
-        self.members = []

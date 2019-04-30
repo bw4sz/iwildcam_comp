@@ -4,7 +4,7 @@ test_data_path: /orange/ewhite/b.weinstein/CameraTrap/iWildCam_2019_IDFG/iWildCa
 train_detections: /Users/ben/Dropbox/DeepTrap/CCT_Detection_Results_2.p
 
 #Preprocessing
-output_dir: /orange/ewhite/b.weinstein/CameraTrap/preprocessed/
+h5_dir: /orange/ewhite/b.weinstein/CameraTrap/preprocessed/
 
 #Training
 bgmodel:

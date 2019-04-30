@@ -7,6 +7,7 @@ import numpy as np
 import BackgroundSubtraction
 import utils
 import Detector
+import create_h5
 
 #Read and log config file
 config = utils.read_config(prepend="..")
@@ -20,6 +21,7 @@ debug=True
 #use local image copy
 if debug:
     config["train_data_path"] = "../tests/data/sample_location"
+    config["h5_dir"] = "/Users/Ben/Downloads/"
 
 #Load data
 train_df = pd.read_csv('../data/train.csv')
@@ -29,10 +31,10 @@ train_df = utils.check_images(train_df, config["train_data_path"])
 #Sort images into location
 locations  = BackgroundSubtraction.sort_locations(train_df)
 
-results = []
-predicted_empty= []
-
 for location in locations:
+    location_images = []    
+    location_labels = []
+    location_filenames = []
     for day_or_night in locations[location]:
             
         #Selection image data
@@ -45,15 +47,20 @@ for location in locations:
         bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night )
         
         #Select representative images based on temporal median difference
-        target_images = bgmodel.run()
+        images, labels, filenames = bgmodel.run()
+        
+        #Add to location lists
+        location_images.append(images)
+        location_labels.append(labels)
+        location_filenames.append(filenames)
+    
+    #Write h5 file
+    create_h5.generate(location_images, location_labels, location_filenames, destination_dir, location)
+    
+    
+    
+    
 
-            #crop images based on Megadetector intersecting with temporal median box
-        
-        
-        #Write tfrecords
-        
-        #Side effect, those with no boxes are predicted empty
-        predicted_empty.append(bgmodel.predictions)
         
 #Save predicted empty based on temporal median
 #Convert to dataframe and save
