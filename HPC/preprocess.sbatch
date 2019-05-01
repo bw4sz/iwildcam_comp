@@ -17,5 +17,5 @@ export PATH=${PATH}:/home/b.weinstein/miniconda/envs/DeepTrap/bin/
 export PYTHONPATH=${PYTHONPATH}:/home/b.weinstein/miniconda/envs/DeepTrap/lib/python3.6/site-packages/
 echo $PYTHONPATH
 
-cd /home/b.weinstein/iwildcam_comp/DeepTrap/
-python Locations.py
+cd /home/b.weinstein/iwildcam_comp/
+python dask_generate.py
