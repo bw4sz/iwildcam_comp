@@ -44,6 +44,8 @@ train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=
 #Ensure images exist
 train_df = utils.check_images(train_df, config["train_data_path"])
 
+#TODO check h5 preprocessed utils.check_h5
+
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
 
