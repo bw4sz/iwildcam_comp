@@ -86,6 +86,9 @@ class BackgroundModel():
         images = self.resize_sequence(images, target_shape)        
         
         #Stack images into a single array
+        if len(images) == 0:
+            return None
+        
         images = np.stack(images)
         median_background = np.median(images, axis=0)
         median_background = median_background.astype(np.uint8)
@@ -181,8 +184,12 @@ class BackgroundModel():
             #Remove taget image
             sequence_background = self.create_background(background_data, target_shape=image.shape)
             
-            #image threshold
-            threshold_image = self.apply(sequence_background, image, min_threshold=self.min_threshold)
+            #if this was the only image, just return it
+            if sequence_background is None:
+                threshold_image = image
+            else:
+                #image threshold
+                threshold_image = self.apply(sequence_background, image, min_threshold=self.min_threshold)
             
             #grab label and filename
             label = image_data[image_data.file_path == image_path].category_id.values[0]
