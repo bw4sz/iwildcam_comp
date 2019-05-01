@@ -4,8 +4,8 @@ import sys
 import pandas as pd
 
 from dask_jobqueue import SLURMCluster
-from dask.distributed import Client
-from dask import delayed, compute
+from dask.distributed import Client, wait
+from dask import delayed, compute, persist
 
 from DeepTrap import Locations, utils, BackgroundSubtraction
 
@@ -44,17 +44,14 @@ def run(config, debug=False):
     
     print("{} locations found".format(len(locations)))
     
-    results=[]
-    for location in locations:
-        location_data = locations[location]
+    #parallel loop with error handling    
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir) for x in locations]
+    persisted_values = persist(*values)
+    for pv in persisted_values:
         try:
-            message = delayed(Locations.preprocess_location)(location_data, destination_dir)
+            wait(pv)
         except Exception as e:
-            message = "{} failed with error {}".format(location,e)
-        results.append(message)
-    
-    #Trigger dask    
-    print(compute(*results))
+            pass
     
     #test data
     test_df = pd.read_csv('data/test.csv')
@@ -69,18 +66,15 @@ def run(config, debug=False):
     #Sort images into location
     locations  = BackgroundSubtraction.sort_locations(test_df)
         
-    results = []
-    for location in locations:
-        location_data = locations[location]
+    #parallel loop with error handling
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir) for x in locations]
+    persisted_values = persist(*values)
+    for pv in persisted_values:
         try:
-            message = delayed(Locations.preprocess_location)(location_data, destination_dir)
+            wait(pv)
         except Exception as e:
-            message = "{} failed with error {}".format(location,e)
-        
-        results.append(message)
-        
-    print(compute(*results))
-
+            pass
+                    
 def run_local():
     
     config = utils.read_config()
