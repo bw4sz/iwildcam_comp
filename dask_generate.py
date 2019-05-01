@@ -47,11 +47,14 @@ def run(config, debug=False):
     results=[]
     for location in locations:
         location_data = locations[location]
-        message = delayed(Locations.preprocess_location)(location_data, destination_dir)
+        try:
+            message = delayed(Locations.preprocess_location)(location_data, destination_dir)
+        except Exception as e:
+            message = "{} failed with error {}".format(location,e)
         results.append(message)
     
     #Trigger dask    
-    compute(*results)
+    print(compute(*results))
     
     #test data
     test_df = pd.read_csv('data/test.csv')
@@ -69,10 +72,14 @@ def run(config, debug=False):
     results = []
     for location in locations:
         location_data = locations[location]
-        message = delayed(Locations.preprocess_location)(location_data, destination_dir)
+        try:
+            message = delayed(Locations.preprocess_location)(location_data, destination_dir)
+        except Exception as e:
+            message = "{} failed with error {}".format(location,e)
+        
         results.append(message)
         
-    compute(*results)
+    print(compute(*results))
 
 def run_local():
     
