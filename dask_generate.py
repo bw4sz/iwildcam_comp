@@ -1,27 +1,14 @@
-import glob
-import subprocess
 import socket
 import os
 import sys
-import re
+import pandas as pd
 
-#optional suppress warnings
-import warnings
-warnings.simplefilter("ignore")
+from dask_jobqueue import SLURMCluster
+from dask.distributed import Client
+from dask import delayed
 
-from DeepTrap import Locations, config
+from DeepTrap import Locations, utils, BackgroundSubtraction
 
-def run_test(data_paths):
-    DeepForest_config = config.load_config()    
-    site=DeepForest_config['training_csvs'][0]
-    Generate.run(data_paths[site][0], DeepForest_config,site=site)
-    
-def run_local(data_paths):
-    DeepForest_config = config.load_config()    
-    for site in DeepForest_config['training_csvs']:
-        for path in data_paths[site]:
-            Generate.run(path, DeepForest_config,site=site)
-    
 def start_tunnel():
     """
     Start a juypter session and ssh tunnel to view task progress
@@ -33,17 +20,73 @@ def start_tunnel():
     #flush system
     sys.stdout.flush()
 
-def run_HPC(locations):
+def run(config, debug=False):
+    #Read and log config file
+    
+    #use local image copy
+    if debug:
+        config["train_data_path"] = "tests/data/sample_location"
+        config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
+        config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
+        
+    destination_dir = config["train_h5_dir"] 
+    #check for image dir
+    if not os.path.exists(destination_dir):
+        os.mkdir(destination_dir)
+            
+    #Load train data
+    train_df = pd.read_csv('data/train.csv')
+    train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
+    train_df = utils.check_images(train_df, config["train_data_path"])
+    
+    #Sort images into location
+    locations  = Locations.sort_locations(train_df)
+    
+    results=[]
+    for location in locations:
+        location_data = locations[location]
+        message = delayed(Locations.preprocess_location(location_data, destination_dir))
+        results.append(message)
+    
+    #Trigger dask
+    print(results.compute())
+    
+    #test data
+    test_df = pd.read_csv('data/test.csv')
+    test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(config["test_data_path"], f'{x}.jpg'))
+    test_df = utils.check_images(test_df, config["test_data_path"])
+    
+    destination_dir = config["test_h5_dir"] 
+    #check for image dir
+    if not os.path.exists(destination_dir):
+        os.mkdir(destination_dir)
+        
+    #Sort images into location
+    locations  = BackgroundSubtraction.sort_locations(test_df)
+        
+    results = []
+    for location in locations:
+        location_data = locations[location]
+        message = delayed(Locations.preprocess_location(location_data, destination_dir))
+        results.append(message)
+        
+    print(results.compute())
+
+def run_local():
+    
+    config = utils.read_config()
+    
+    client = Client()    
+    run(config,debug=True)
+    
+def run_HPC():
         
     #################
     # Setup dask cluster
     #################
     
-    from dask_jobqueue import SLURMCluster
-    from dask.distributed import Client, wait
-    
-    DeepForest_config = config.load_config()
-    num_workers = DeepForest_config["num_hipergator_workers"]
+    config = utils.read_config()
+    num_workers = config["num_hipergator_workers"]
     
     #job args
     extra_args=[
@@ -56,7 +99,7 @@ def run_HPC(locations):
         processes=1,
         queue='hpg2-compute',
         cores=1, 
-        memory='22GB', 
+        memory='10GB', 
         walltime='48:00:00',
         job_extra=extra_args,
         local_directory="/home/b.weinstein/logs/", death_timeout=300)
@@ -68,22 +111,13 @@ def run_HPC(locations):
         
     #Start dask
     dask_client.run_on_scheduler(start_tunnel)  
-    for 
-    futures = dask_client.map(Locations.preprocess_location, locations)
-    wait(futures)
     
-    #TODO print futures in such a way to see result.
+    run(config, debug=False)
+
 
 if __name__ == "__main__":
-    
-    #Local Debugging
-    data_paths=find_csvs(overwrite=True)
-    
-    total_files = [len(data_paths[x]) for x in data_paths]
-    print("{s} csv files found for training".format(s=sum(total_files)))
-    
-    #run_local(data_paths)
-    run_test(data_paths)
+    #Local debugging
+    run_local()
     
     #On Hypergator
-    #run_HPC(data_paths)
+    #run_HPC()
