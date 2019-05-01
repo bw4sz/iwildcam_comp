@@ -6,30 +6,6 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 #Start a background subtraction object
-def sort_locations(data):
-    """Divide the input data into location sets for background subtraction"""
-    
-    #denote day and night, if poorly formatted add to day.
-    for index, row in data.iterrows():
-        try:
-            date_object = datetime.strptime(data.date_captured[index] , "%Y-%m-%d %H:%M:%S")
-        except:
-            data.at[index,'day_night'] = "day"
-        is_day = date_object.hour  > 8 and date_object.hour  < 17
-        if is_day:
-            data.at[index,'day_night'] = "day"
-        else:
-            data.at[index,'day_night'] = "night"
-
-        #Split into nested dict by location and daynight
-    location_dict = {}
-    for i in data["location"].unique():
-        location_data = data[data.location == i]
-        location_dict[i] = {}        
-        for j in location_data["day_night"].unique():
-            location_dict[i][j] = location_data[location_data.day_night == j]
-    
-    return location_dict
        
 class BackgroundModel():
     

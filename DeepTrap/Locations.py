@@ -3,12 +3,35 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 #DeepTrap
-import BackgroundSubtraction
-import utils
-import Detector
-import create_h5
+from DeepTrap import BackgroundSubtraction, create_h5, utils
+
+def sort_locations(data):
+    """Divide the input data into location sets for background subtraction"""
+    
+    #denote day and night, if poorly formatted add to day.
+    for index, row in data.iterrows():
+        try:
+            date_object = datetime.strptime(data.date_captured[index] , "%Y-%m-%d %H:%M:%S")
+        except:
+            data.at[index,'day_night'] = "day"
+        is_day = date_object.hour  > 8 and date_object.hour  < 17
+        if is_day:
+            data.at[index,'day_night'] = "day"
+        else:
+            data.at[index,'day_night'] = "night"
+
+        #Split into nested dict by location and daynight
+    location_dict = {}
+    for i in data["location"].unique():
+        location_data = data[data.location == i]
+        location_dict[i] = {}        
+        for j in location_data["day_night"].unique():
+            location_dict[i][j] = location_data[location_data.day_night == j]
+    
+    return location_dict
 
 def preprocess_location(location_data, destination_dir):
     """A dictionary object with keys day and night split by pandas image data"""
@@ -41,7 +64,11 @@ def preprocess_location(location_data, destination_dir):
     location_labels = [item for sublist in location_labels for item in sublist]
     location_filenames = [item for sublist in location_filenames for item in sublist]
     
-    create_h5.generate(location_images, location_labels, location_filenames, destination_dir= destination_dir, location=location)
+    #Tag location and create h5 file
+    location = image_data.location.unique()[0]
+    result = create_h5.generate(location_images, location_labels, location_filenames, destination_dir= destination_dir, location=location)
+    print(result)
+    return result
 
 if __name__=="__main__":
     #Read and log config file
@@ -54,7 +81,6 @@ if __name__=="__main__":
         config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
         config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
         
-    
     destination_dir = config["train_h5_dir"] 
     #check for image dir
     if not os.path.exists(destination_dir):
@@ -66,7 +92,7 @@ if __name__=="__main__":
     train_df = utils.check_images(train_df, config["train_data_path"])
     
     #Sort images into location
-    locations  = BackgroundSubtraction.sort_locations(train_df)
+    locations  = sort_locations(train_df)
         
     for location in locations:
         location_data = locations[location]
@@ -83,7 +109,7 @@ if __name__=="__main__":
         os.mkdir(destination_dir)
         
     #Sort images into location
-    locations  = BackgroundSubtraction.sort_locations(test_df)
+    locations  = sort_locations(test_df)
         
     for location in locations:
         location_data = locations[location]

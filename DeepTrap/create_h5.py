@@ -4,8 +4,8 @@ import h5py
 import numpy as np
 import cv2
 
-import utils
-config = utils.read_config(prepend="..")
+from DeepTrap import utils
+config = utils.read_config()
 
 def resize(image, image_shape):
     height, width, channels = image_shape
@@ -22,6 +22,11 @@ def generate(images, labels, filenames, destination_dir, location):
     image_shape = (config["height"], config["width"], 3)
     hdf5_file = create_file(destination_dir, location, image_shape, n_images=len(images))
     write_records(hdf5_file, images, labels, filenames, image_shape)
+    
+    #Print message
+    h5_filename = os.path.join(destination_dir, str(location) + ".h5")
+    
+    return "{} created".format(h5_filename)
     
 def create_file(destination_dir, location, image_shape, n_images):
     """Create a h5 in the directory specified named for the location. h5 has two objects, the images and the labels"""
