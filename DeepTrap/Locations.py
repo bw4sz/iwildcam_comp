@@ -6,24 +6,32 @@ import numpy as np
 from datetime import datetime
 
 #DeepTrap
-from DeepTrap import BackgroundSubtraction, create_h5, utils
+if __name__ == "__main__":
+    import BackgroundSubtraction, create_h5, utils
+else:
+    from DeepTrap import BackgroundSubtraction, create_h5, utils
 
+def convert_time(time_string):
+    try:
+        date_object = datetime.strptime(time_string , "%Y-%m-%d %H:%M:%S")
+    except:
+        return "day"
+    
+    #time interval
+    is_day = date_object.hour  > 8 and date_object.hour  < 17
+    
+    if is_day:
+        return "day"
+    else:
+        return "night"
+    
 def sort_locations(data):
     """Divide the input data into location sets for background subtraction"""
     
     #denote day and night, if poorly formatted add to day.
-    for index, row in data.iterrows():
-        try:
-            date_object = datetime.strptime(data.date_captured[index] , "%Y-%m-%d %H:%M:%S")
-        except:
-            data.at[index,'day_night'] = "day"
-        is_day = date_object.hour  > 8 and date_object.hour  < 17
-        if is_day:
-            data.at[index,'day_night'] = "day"
-        else:
-            data.at[index,'day_night'] = "night"
+    data["day_night"] = data.date_captured.apply(convert_time)
 
-        #Split into nested dict by location and daynight
+    #Split into nested dict by location and daynight
     location_dict = {}
     for i in data["location"].unique():
         location_data = data[data.location == i]
@@ -73,7 +81,7 @@ def preprocess_location(location_data, destination_dir):
 if __name__=="__main__":
     #Read and log config file
     config = utils.read_config(prepend="..")
-    debug=False
+    debug=True
     
     #use local image copy
     if debug:

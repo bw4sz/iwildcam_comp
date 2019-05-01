@@ -42,6 +42,8 @@ def run(config, debug=False):
     #Sort images into location
     locations  = Locations.sort_locations(train_df)
     
+    print("{} locations found".format(len(locations)))
+    
     results=[]
     for location in locations:
         location_data = locations[location]
@@ -113,7 +115,6 @@ def run_HPC():
     dask_client.run_on_scheduler(start_tunnel)  
     
     run(config, debug=False)
-
 
 if __name__ == "__main__":
     #Local debugging

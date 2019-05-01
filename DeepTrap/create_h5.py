@@ -6,7 +6,7 @@ import cv2
 
 from DeepTrap import utils
 config = utils.read_config()
-
+    
 def resize(image, image_shape):
     height, width, channels = image_shape
     image = cv2.resize(image, (width, height))
