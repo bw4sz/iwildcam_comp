@@ -47,7 +47,7 @@ def run(config, debug=False):
     results=[]
     for location in locations:
         location_data = locations[location]
-        message = delayed(Locations.preprocess_location(location_data, destination_dir))
+        message = delayed(Locations.preprocess_location)(location_data, destination_dir)
         results.append(message)
     
     #Trigger dask    
@@ -69,7 +69,7 @@ def run(config, debug=False):
     results = []
     for location in locations:
         location_data = locations[location]
-        message = delayed(Locations.preprocess_location(location_data, destination_dir))
+        message = delayed(Locations.preprocess_location)(location_data, destination_dir)
         results.append(message)
         
     compute(*results)
