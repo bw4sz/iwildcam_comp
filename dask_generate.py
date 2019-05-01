@@ -5,7 +5,7 @@ import pandas as pd
 
 from dask_jobqueue import SLURMCluster
 from dask.distributed import Client
-from dask import delayed
+from dask import delayed, compute
 
 from DeepTrap import Locations, utils, BackgroundSubtraction
 
@@ -48,8 +48,8 @@ def run(config, debug=False):
         message = delayed(Locations.preprocess_location(location_data, destination_dir))
         results.append(message)
     
-    #Trigger dask
-    print(results.compute())
+    #Trigger dask    
+    compute(*results)
     
     #test data
     test_df = pd.read_csv('data/test.csv')
@@ -70,7 +70,7 @@ def run(config, debug=False):
         message = delayed(Locations.preprocess_location(location_data, destination_dir))
         results.append(message)
         
-    print(results.compute())
+    compute(*results)
 
 def run_local():
     
