@@ -10,6 +10,14 @@ classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
     12:"black_bear", 13:"raccoon", 14: "skunk", 15: "wolf", 16:"bobcat", 17: "cat",
     18:"dog", 19:"opossum", 20: "bison", 21: "mountain_goat", 22:"mountain_lion"}
 
+def check_h5s(data, h5_dir):
+    existing_h5s = glob.glob(os.path.join(h5_dir,"*.h5"))
+    existing_locations = [os.path.splitext(os.path.basename(x)) for x in existing_h5s ]
+    existing_locations = [int(x) for x in existing_locations]
+    data = data[data.location.isin(existing_locations)]
+    
+    return data
+    
 def check_images(data, image_dir):
     #get available images
     image_paths = glob.glob(os.path.join(image_dir,"*.jpg"))

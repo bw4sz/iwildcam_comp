@@ -41,7 +41,7 @@ def sort_locations(data):
     
     return location_dict
 
-def preprocess_location(location_data, destination_dir):
+def preprocess_location(location_data, destination_dir, training=True):
     """A dictionary object with keys day and night split by pandas image data"""
     
     location_images = []    
@@ -56,7 +56,7 @@ def preprocess_location(location_data, destination_dir):
         image_data = image_data.sort_values("date_captured")
         
         #Create a background model object for camera location of sequences
-        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night )
+        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night, training=training)
         
         #Select representative images based on temporal median difference
         images, labels, filenames = bgmodel.run()
@@ -89,22 +89,22 @@ if __name__=="__main__":
         config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
         config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
         
-    destination_dir = config["train_h5_dir"] 
-    #check for image dir
-    if not os.path.exists(destination_dir):
-        os.mkdir(destination_dir)
+    #destination_dir = config["train_h5_dir"] 
+    ##check for image dir
+    #if not os.path.exists(destination_dir):
+        #os.mkdir(destination_dir)
             
-    #Load train data
-    train_df = pd.read_csv('../data/train.csv')
-    train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
-    train_df = utils.check_images(train_df, config["train_data_path"])
+    ##Load train data
+    #train_df = pd.read_csv('../data/train.csv')
+    #train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
+    #train_df = utils.check_images(train_df, config["train_data_path"])
     
-    #Sort images into location
-    locations  = sort_locations(train_df)
+    ##Sort images into location
+    #locations  = sort_locations(train_df)
         
-    for location in locations:
-        location_data = locations[location]
-        preprocess_location(location_data, destination_dir)    
+    #for location in locations:
+        #location_data = locations[location]
+        #preprocess_location(location_data, destination_dir)    
     
     #test data
     test_df = pd.read_csv('../data/test.csv')

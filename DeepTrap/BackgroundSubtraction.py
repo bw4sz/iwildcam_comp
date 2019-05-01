@@ -9,11 +9,13 @@ import numpy as np
        
 class BackgroundModel():
     
-    def __init__(self,image_data, day_or_night):
+    def __init__(self,image_data, day_or_night, training=True):
         """Create a background model class
         image_data: pandas dataframe of image data
         day_or_night: is the sequence at "night" or 'day' to help set settings
         """
+        #Training mode (load annotations)
+        self.training = training
         
         self.data = image_data
         
@@ -149,11 +151,12 @@ class BackgroundModel():
             threshold_image = self.apply(sequence_background, image, self.min_threshold )
             subtracted_images.append(threshold_image)
             
-            #grab label
-            label = image_data[image_data.file_path == image_path].category_id.values[0]
+            #grab label and filename
+            if self.training:
+                label = image_data[image_data.file_path == image_path].category_id.values[0]
+                labels.append(label)
+                
             filename = image_data[image_data.file_path == image_path].file_name.values[0]
-            
-            labels.append(label)
             filenames.append(filename)
             
             #plot
@@ -192,7 +195,11 @@ class BackgroundModel():
                 threshold_image = self.apply(sequence_background, image, min_threshold=self.min_threshold)
             
             #grab label and filename
-            label = image_data[image_data.file_path == image_path].category_id.values[0]
+            if self.training:
+                label = image_data[image_data.file_path == image_path].category_id.values[0]
+            else:
+                label = None
+                
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
             
         return ([threshold_image], [label], [filename])

@@ -2,6 +2,8 @@ import socket
 import os
 import sys
 import pandas as pd
+import glob
+import h5py
 
 from dask_jobqueue import SLURMCluster
 from dask.distributed import Client, wait
@@ -20,12 +22,30 @@ def start_tunnel():
     #flush system
     sys.stdout.flush()
 
+def test_h5s(h5s):
+    for f in h5s:
+        delete_corrupt_h5(f)
+    
+def delete_corrupt_h5(f):
+    try:
+        hf = h5py.File(f, 'r')
+        shape=hf['images'][0,].shape
+        print("{t} has a shape {s}".format(t=f,s=shape))
+    except Exception as e:
+        print("{f} failed with error message {e}".format(f=f,e=e))
+        counter +=1
+        try: 
+            os.remove(path_to_h5)
+        except Exception as e:
+            print(e)
+            
 def run(config, debug=False):
     #Read and log config file
     
     #use local image copy
     if debug:
-        config["train_data_path"] = "tests/data/sample_location"
+        config["train_data_path"] = "/Users/ben/Documents/iwildcam_comp/tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images"
+        config["test_data_path"] = "/Users/ben/Documents/iwildcam_comp/tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images"        
         config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
         config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
         
@@ -53,6 +73,10 @@ def run(config, debug=False):
         except Exception as e:
             pass
     
+    #Clean up Delete corrupt files
+    h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
+    test_h5s(h5s)
+        
     #test data
     test_df = pd.read_csv('data/test.csv')
     test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(config["test_data_path"], f'{x}.jpg'))
@@ -64,21 +88,25 @@ def run(config, debug=False):
         os.mkdir(destination_dir)
         
     #Sort images into location
-    locations  = BackgroundSubtraction.sort_locations(test_df)
+    locations  = Locations.sort_locations(test_df)
         
     #parallel loop with error handling
-    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir) for x in locations]
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, training=False) for x in locations]
     persisted_values = persist(*values)
     for pv in persisted_values:
         try:
             wait(pv)
         except Exception as e:
             pass
-                    
+     
+    #Clean up Delete corrupt files
+    h5s = glob.glob(os.path.join(destination_dir), "*.h5")
+    test_h5s(h5s)
+     
+     
 def run_local():
-    
+    #Run a local cluster
     config = utils.read_config()
-    
     client = Client()    
     run(config,debug=True)
     
@@ -116,7 +144,7 @@ def run_HPC():
     dask_client.run_on_scheduler(start_tunnel)  
     
     run(config, debug=False)
-
+                
 if __name__ == "__main__":
     #Local debugging
     #run_local()

@@ -21,6 +21,8 @@ def generate(images, labels, filenames, destination_dir, location):
     #Assume that all files have the same shape
     image_shape = (config["height"], config["width"], 3)
     hdf5_file = create_file(destination_dir, location, image_shape, n_images=len(images))
+    if not hdf5_file:
+        return "{} already exists".format(location)
     write_records(hdf5_file, images, labels, filenames, image_shape)
     
     #Print message
@@ -28,11 +30,16 @@ def generate(images, labels, filenames, destination_dir, location):
     
     return "{} created".format(h5_filename)
     
-def create_file(destination_dir, location, image_shape, n_images):
+def create_file(destination_dir, location, image_shape, n_images, overwrite=False):
     """Create a h5 in the directory specified named for the location. h5 has two objects, the images and the labels"""
     #Create h5 dataset    
     # open a hdf5 file and create arrays
     h5_filename = os.path.join(destination_dir, str(location) + ".h5")
+    
+    if not overwrite:
+        file_exists = os.path.exists(h5_filename)
+        return None
+        
     hdf5_file = h5py.File(h5_filename, mode='w')    
         
     #Create h5 dataset to fill

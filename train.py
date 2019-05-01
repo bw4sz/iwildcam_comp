@@ -45,6 +45,7 @@ train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=
 train_df = utils.check_images(train_df, config["train_data_path"])
 
 #TODO check h5 preprocessed utils.check_h5
+train_df = utils.check_h5s(train_df, config["train_h5_dir"])
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
@@ -80,6 +81,7 @@ model.train(train_generator, evaluation_generator=evaluation_generator, callback
 #Test data
 test_df = utils.read_test_data(image_dir=config["test_data_path"])
 test_df = utils.check_images(test_df, config["test_data_path"])
+test_df = utils.check_h5s(test_df, config["train_h5_dir"])
 
 if not mode.debug:
     test_df = test_df.sample(n=100)
