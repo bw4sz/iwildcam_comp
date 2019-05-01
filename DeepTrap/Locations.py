@@ -46,7 +46,7 @@ def preprocess_location(location_data, destination_dir):
 if __name__=="__main__":
     #Read and log config file
     config = utils.read_config(prepend="..")
-    debug=True
+    debug=False
     
     #use local image copy
     if debug:
