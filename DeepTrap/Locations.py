@@ -10,7 +10,7 @@ import utils
 import Detector
 import create_h5
 
-def preprocess_location(location_data):
+def preprocess_location(location_data, destination_dir):
     """A dictionary object with keys day and night split by pandas image data"""
     
     location_images = []    
@@ -41,7 +41,7 @@ def preprocess_location(location_data):
     location_labels = [item for sublist in location_labels for item in sublist]
     location_filenames = [item for sublist in location_filenames for item in sublist]
     
-    create_h5.generate(location_images, location_labels, location_filenames, destination_dir= config["h5_dir"], location=location)
+    create_h5.generate(location_images, location_labels, location_filenames, destination_dir= destination_dir, location=location)
 
 if __name__=="__main__":
     #Read and log config file
@@ -51,13 +51,16 @@ if __name__=="__main__":
     #use local image copy
     if debug:
         config["train_data_path"] = "../tests/data/sample_location"
-        config["h5_dir"] = "/Users/Ben/Downloads/"
+        config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
+        config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
+        
     
+    destination_dir = config["train_h5_dir"] 
     #check for image dir
-    #if not os.path.exists(output_dir):
-        #os.mkdir(output)
+    if not os.path.exists(destination_dir):
+        os.mkdir(destination_dir)
             
-    #Load data
+    #Load train data
     train_df = pd.read_csv('../data/train.csv')
     train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
     train_df = utils.check_images(train_df, config["train_data_path"])
@@ -67,4 +70,21 @@ if __name__=="__main__":
         
     for location in locations:
         location_data = locations[location]
-        preprocess_location(location_data)    
+        preprocess_location(location_data, destination_dir)    
+    
+    #test data
+    test_df = pd.read_csv('../data/test.csv')
+    test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(config["test_data_path"], f'{x}.jpg'))
+    test_df = utils.check_images(test_df, config["test_data_path"])
+    
+    destination_dir = config["test_h5_dir"] 
+    #check for image dir
+    if not os.path.exists(destination_dir):
+        os.mkdir(destination_dir)
+        
+    #Sort images into location
+    locations  = BackgroundSubtraction.sort_locations(test_df)
+        
+    for location in locations:
+        location_data = locations[location]
+        preprocess_location(location_data, destination_dir)
