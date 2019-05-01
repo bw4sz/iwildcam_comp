@@ -13,7 +13,6 @@ from DeepTrap.utils import classes as classification_classes
 from DeepTrap import preprocess
 from DeepTrap.visualization import draw_annotation
 
-
 class Generator(keras.utils.Sequence):
     """ Generate data for a custom dataset.
     Inspired by fizyr/retinanet https://github.com/fizyr/keras-retinanet/
@@ -62,7 +61,7 @@ class Generator(keras.utils.Sequence):
 
     def define_groups(self, shuffle = True):
         
-        #TODO sort by location?
+        #Sort by location
         self.data = self.data.sort_values("location").reset_index()
         self.image_dict = self.data.to_dict("index")
         order = list(self.image_dict.keys())
@@ -125,10 +124,11 @@ class Generator(keras.utils.Sequence):
         filename = self.image_dict[image_index]["file_path"]      
         
         h5_index = np.argmax(filename == self.hf["filenames"])
-        self.label = self.hf["labels"][h5_index,...]
         
+        #For some reason, this is an array, but it should be a value        
+        self.label = self.hf["labels"][h5_index,...][0]
         categorical_label = keras.utils.np_utils.to_categorical(self.label, num_classes=len(self.classes))
-        categorical_label=categorical_label.astype(int)
+
         return categorical_label
     
     def load_annotations_group(self, group):

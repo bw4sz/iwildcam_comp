@@ -68,6 +68,7 @@ def run_HPC(locations):
         
     #Start dask
     dask_client.run_on_scheduler(start_tunnel)  
+    for 
     futures = dask_client.map(Locations.preprocess_location, locations)
     wait(futures)
     

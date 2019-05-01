@@ -53,8 +53,8 @@ selected_locations = location_filter[location_filter==True].index.values
 training_split = training_split[training_split.location.isin(selected_locations)]
 
 #remove empty from set for testing.
-training_split = training_split[training_split.category_id!=0]
-evaluation_split =evaluation_split[evaluation_split.category_id!=0]
+#training_split = training_split[training_split.category_id!=0]
+#evaluation_split =evaluation_split[evaluation_split.category_id!=0]
 
 #Log m
 train_generator = Generator(training_split, 
