@@ -65,7 +65,7 @@ def run(config, debug=False):
     print("{} locations found".format(len(locations)))
     
     #parallel loop with error handling    
-    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir) for x in locations]
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
     persisted_values = persist(*values)
     for pv in persisted_values:
         try:
@@ -91,7 +91,7 @@ def run(config, debug=False):
     locations  = Locations.sort_locations(test_df)
         
     #parallel loop with error handling
-    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, training=False) for x in locations]
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, training=False, config=config) for x in locations]
     persisted_values = persist(*values)
     for pv in persisted_values:
         try:
@@ -130,7 +130,7 @@ def run_HPC():
         processes=1,
         queue='hpg2-compute',
         cores=1, 
-        memory='10GB', 
+        memory='12GB', 
         walltime='48:00:00',
         job_extra=extra_args,
         local_directory="/home/b.weinstein/logs/", death_timeout=300)
@@ -147,7 +147,7 @@ def run_HPC():
                 
 if __name__ == "__main__":
     #Local debugging
-    #run_local()
+    run_local()
     
     #On Hypergator
     run_HPC()

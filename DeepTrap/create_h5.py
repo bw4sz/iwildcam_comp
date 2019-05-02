@@ -3,16 +3,13 @@ import os
 import h5py
 import numpy as np
 import cv2
-
-from DeepTrap import utils
-config = utils.read_config()
     
 def resize(image, image_shape):
     height, width, channels = image_shape
     image = cv2.resize(image, (width, height))
     return image
     
-def generate(images, labels, filenames, destination_dir, location):
+def generate(images, labels, filenames, destination_dir, location, config):
     """Create and save a precomputed location of images
     images,labels,filenames are lists of results from Location.py
     destination dir: output dir to save h5 file
