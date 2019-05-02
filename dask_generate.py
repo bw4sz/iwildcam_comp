@@ -71,7 +71,7 @@ def run(config, debug=False):
         try:
             wait(pv)
         except Exception as e:
-            pass
+            print(e)
     
     #Clean up Delete corrupt files
     h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
@@ -97,18 +97,17 @@ def run(config, debug=False):
         try:
             wait(pv)
         except Exception as e:
-            pass
+            print(e)
      
     #Clean up Delete corrupt files
     h5s = glob.glob(os.path.join(destination_dir), "*.h5")
     test_h5s(h5s)
      
-     
 def run_local():
     #Run a local cluster
     config = utils.read_config()
     client = Client()    
-    run(config,debug=True)
+    run(config, debug=True)
     
 def run_HPC():
         
@@ -130,7 +129,7 @@ def run_HPC():
         processes=1,
         queue='hpg2-compute',
         cores=1, 
-        memory='12GB', 
+        memory='8GB', 
         walltime='48:00:00',
         job_extra=extra_args,
         local_directory="/home/b.weinstein/logs/", death_timeout=300)

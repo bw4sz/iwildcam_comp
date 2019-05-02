@@ -5,14 +5,18 @@ from datetime import datetime
 from matplotlib import pyplot as plt
 import numpy as np
 
+#DeepTrap
+from DeepTrap import create_h5
+
 #Start a background subtraction object
        
 class BackgroundModel():
     
-    def __init__(self,image_data, day_or_night, training=True):
+    def __init__(self,image_data, day_or_night, destination_dir, config, training=True):
         """Create a background model class
         image_data: pandas dataframe of image data
         day_or_night: is the sequence at "night" or 'day' to help set settings
+        return a saved h5 file to disk with outputs for training/prediction
         """
         #Training mode (load annotations)
         self.training = training
@@ -23,17 +27,20 @@ class BackgroundModel():
         self.wb = cv2.xphoto.createSimpleWB()
         self.wb.setP(0.4)
         
-        #Empty predictions
-        self.predictions = {}
+        #Create h5 container for results
+        location = image_data.location.unique()[0]  
+        n_images = image_data.shape[0]
+        self.image_shape = (config["height"], config["width"])
         
-        #Box predictions
-        self.box_predictions = {}
+        self.h5_file = create_h5.create_file(
+            destination_dir,
+            location,
+            image_shape = self.image_shape,
+            n_images = n_images) 
         
-        #Set min threshold
-        if day_or_night == "day":
-            self.min_threshold = 30
-        else:
-            self.min_threshold = 5
+        #If overwrite and file exists, exit.
+        if self.h5_file is None:
+            return None
         
     def split_sequences(self):
         """Divide pandas dataframe into dictionary of sequences of images"""
@@ -45,7 +52,20 @@ class BackgroundModel():
         for id in unique_ids:
             sequence_dict[id] = self.data[self.data.seq_id == id]
         return sequence_dict
-    
+            
+    def plot_sequence(self, image_data):
+        #Get file paths
+        files= list(image_data.file_path)
+        rows = 2
+        self.fig = plt.figure()
+        
+        #Loop and plot
+        for index, path in enumerate(files):
+            plt.subplot(2,len(files),index+1)
+            image = cv2.imread(path)
+            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)            
+            plt.imshow(img_rgb)
+            
     def load_image(self, path):
         """Load and image and convert color space"""
         img = cv2.imread(path)
@@ -78,7 +98,6 @@ class BackgroundModel():
         image_data: pandas dataframe
         target_shape: reshape if within location shape varies among images.
         """
-            
         images = []
         for index, row in image_data.iterrows():
             img = self.load_image(row.file_path)
@@ -99,7 +118,6 @@ class BackgroundModel():
     def post_process(self,image):
         """Assumes YCrCB color space
         """
-        
         #Scale just the luminance
         image[:,:,0] = image[:,:,0]  - image[:,:,0].mean()
     
@@ -115,9 +133,8 @@ class BackgroundModel():
         
         return image
     
-    def apply(self, background, image, min_threshold):
+    def apply(self, background, image):
         """subtract an image from background and convert to colorspace"""
-        
         #Background subtractions
         foreground = cv2.absdiff(background, image)
         
@@ -130,7 +147,6 @@ class BackgroundModel():
         """apply background subtraction to a set of images
         return a doct the image (with boxes) in the sequence with the largest bounding box {file_name} -> box
         """
-
         #list file paths - skip first image
         images_to_run = list(image_data.file_path)
         num_images = len(images_to_run)
@@ -148,7 +164,7 @@ class BackgroundModel():
             sequence_background = self.create_background(image_data[image_data.file_path !=image_path], target_shape=image.shape)
             
             #image threshold - threshold based on day night
-            threshold_image = self.apply(sequence_background, image, self.min_threshold )
+            threshold_image = self.apply(sequence_background, image)
             subtracted_images.append(threshold_image)
             
             #grab label and filename
@@ -192,7 +208,7 @@ class BackgroundModel():
                 threshold_image = image
             else:
                 #image threshold
-                threshold_image = self.apply(sequence_background, image, min_threshold=self.min_threshold)
+                threshold_image = self.apply(sequence_background, image)
             
             #grab label and filename
             if self.training:
@@ -208,13 +224,13 @@ class BackgroundModel():
         #plt.subplot(2,num_images,num_images + index+1)                
         #plt.imshow(threshold_image[:,:,0:])
         #plt.show()
+    
+    def write_h5(self, images, labels, filenames):
+        """write a list of images, labels and filenames from a sequence"""
+        create_h5.write_records(self.h5_file, images, labels, filenames, 
+                               self.image_shape)
         
     def run(self):
-        
-        #Container for target images and labels
-        images = []
-        labels = []
-        filenames = []
         
         #split into sequences
         sequence_dict = self.split_sequences()
@@ -237,29 +253,11 @@ class BackgroundModel():
                 #Get a global background model and individual image
                 seq_images, seq_labels, seq_filenames = self.run_single(image_data)
                 
-            #Add to a flat list of results
-            for i in range(len(seq_images)):
-                images.append(seq_images[i])
-                labels.append(seq_labels[i])
-                filenames.append(seq_filenames[i])
-
-        return images, labels, filenames
-    
-    def draw_box(self, image, boxes):
-        for bounding_box in boxes:
-            cv2.rectangle(image, (bounding_box.x, bounding_box.y+bounding_box.h),
-                          (bounding_box.x + bounding_box.w, bounding_box.y), (255,0,0), 5)
-        return image
+            #write to h5
+            self.write_h5(seq_images, seq_labels, seq_filenames)
             
-    def plot_sequence(self, image_data):
-        #Get file paths
-        files= list(image_data.file_path)
-        rows = 2
-        self.fig = plt.figure()
-        
-        #Loop and plot
-        for index, path in enumerate(files):
-            plt.subplot(2,len(files),index+1)
-            image = cv2.imread(path)
-            img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)            
-            plt.imshow(img_rgb)
+        #report h5 file size
+        nlabels=len(self.h5_file["labels"])
+        fname = self.h5_file.filename
+        self.h5_file.close()
+        return "{} file exists with {} labels".format(fname, nlabels)

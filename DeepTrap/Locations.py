@@ -41,7 +41,7 @@ def sort_locations(data):
     
     return location_dict
 
-def preprocess_location(location_data, destination_dir, config, training=True):
+def preprocess_location(location_data, config, destination_dir, training=True):
     """A dictionary object with keys day and night split by pandas image data"""
     
     location_images = []    
@@ -56,24 +56,14 @@ def preprocess_location(location_data, destination_dir, config, training=True):
         image_data = image_data.sort_values("date_captured")
         
         #Create a background model object for camera location of sequences
-        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night, training=training)
+        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night, training=training, destination_dir = destination_dir, config=config)
         
         #Select representative images based on temporal median difference
-        images, labels, filenames = bgmodel.run()
+        #Create an h5 holder
+        if bgmodel:
+            message = bgmodel.run()
+        else:
+            message = "File exists, skipping location"
         
-        #Add to location lists
-        location_images.append(images)
-        location_labels.append(labels)
-        location_filenames.append(filenames)
-    
-    #Write h5 file
-    #Flatten out lists
-    location_images = [item for sublist in location_images for item in sublist]
-    location_labels = [item for sublist in location_labels for item in sublist]
-    location_filenames = [item for sublist in location_filenames for item in sublist]
-    
-    #Tag location and create h5 file
-    location = image_data.location.unique()[0]
-    result = create_h5.generate(location_images, location_labels, location_filenames, destination_dir= destination_dir, location=location, config=config)
-    print(result)
-    return result
+    print(message)
+    return message

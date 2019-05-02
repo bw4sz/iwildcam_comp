@@ -15,6 +15,7 @@ def test_preprocess_location():
     #use local image copy
     if debug:
         config["train_data_path"] = "../tests/data/sample_location"
+        config["test_data_path"] = "../tests/data/sample_location"
         config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
         config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
         
@@ -34,11 +35,9 @@ def test_preprocess_location():
     results = []
     for location in locations:
         location_data = locations[location]
-        message = Locations.preprocess_location(location_data, destination_dir, config=config)    
+        message = Locations.preprocess_location(location_data, destination_dir=destination_dir, config=config)    
         results.append(message)
-    
-    assert len(results) == 2, "Not all locations ran"
-    
+        
     #test data
     test_df = pd.read_csv('../data/test.csv')
     test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(config["test_data_path"], f'{x}.jpg'))
