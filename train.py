@@ -36,7 +36,8 @@ if mode.debug:
     config["classification_model"]["epochs"] = 1
     config["classification_model"]["batch_size"] =3
     config["classification_model"]["gpu"] = 1
-    config["h5_dir"] = "/Users/Ben/Downloads/"
+    config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
+    config["test_h5_dir"] = "/Users/Ben/Downloads/test/"    
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
@@ -44,7 +45,7 @@ train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=
 #Ensure images exist
 train_df = utils.check_images(train_df, config["train_data_path"])
 
-#TODO check h5 preprocessed utils.check_h5
+#check h5 preprocessed utils.check_h5
 train_df = utils.check_h5s(train_df, config["train_h5_dir"])
 
 #Create keras training generator - split the training data into a validation set, both from the California site.

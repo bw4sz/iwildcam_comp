@@ -12,7 +12,7 @@ classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
 
 def check_h5s(data, h5_dir):
     existing_h5s = glob.glob(os.path.join(h5_dir,"*.h5"))
-    existing_locations = [os.path.splitext(os.path.basename(x)) for x in existing_h5s ]
+    existing_locations = [os.path.splitext(os.path.basename(x))[0] for x in existing_h5s ]
     existing_locations = [int(x) for x in existing_locations]
     data = data[data.location.isin(existing_locations)]
     
