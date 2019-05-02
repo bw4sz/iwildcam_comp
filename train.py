@@ -65,6 +65,9 @@ train_generator = Generator(training_split,
                             batch_size=config["classification_model"]["batch_size"], 
                             h5_dir=config["train_h5_dir"])
 
+#Sanity check
+assert train_generator.size() > 0, "No training data available"
+
 evaluation_generator = Generator(evaluation_split,
                             batch_size=config["classification_model"]["batch_size"], 
                             h5_dir=config["train_h5_dir"])

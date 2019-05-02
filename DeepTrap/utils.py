@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import os
 import glob
+import h5py
 
 classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
     5:"small_mammal",6: "elk", 7:"pronghorn_antelope", 8:"rabbit",9: "bighorn_sheep", 10:"fox",11: "coyote", 
@@ -19,8 +20,8 @@ def check_h5s(data, h5_dir):
         try:
             hdf5_file = h5py.File(h5_filename, mode='r')    
             finished.append(h5_filename)
-        except:
-            print("Removing location {}, can't open file".format(h5_filename))
+        except Exception as e:
+            print("Error: {}, Removing location {}, can't open file".format(e, h5_filename))
             
     existing_locations = [os.path.splitext(os.path.basename(x))[0] for x in finished]
     existing_locations = [int(x) for x in existing_locations]
