@@ -12,7 +12,17 @@ classes = {0: "empty", 1:"deer", 2:"moose", 3:"squirrel", 4:"rodent",
 
 def check_h5s(data, h5_dir):
     existing_h5s = glob.glob(os.path.join(h5_dir,"*.h5"))
-    existing_locations = [os.path.splitext(os.path.basename(x))[0] for x in existing_h5s ]
+    
+    #Check if they can be opened
+    finished = []
+    for h5_filename in existing_h5s:
+        try:
+            hdf5_file = h5py.File(h5_filename, mode='w')    
+            finished.append(h5_filename)
+        except:
+            print("Removing location {}, can't open file".format(h5_filename))
+            
+    existing_locations = [os.path.splitext(os.path.basename(x))[0] for x in finished]
     existing_locations = [int(x) for x in existing_locations]
     data = data[data.location.isin(existing_locations)]
     
