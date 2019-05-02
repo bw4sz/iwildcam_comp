@@ -123,7 +123,11 @@ class Generator(keras.utils.Sequence):
         location = self.image_dict[image_index]["location"]
         filename = self.image_dict[image_index]["file_path"]      
         
-        h5_index = np.argmax(filename == self.hf["filenames"])
+        try:
+            h5_index = np.argmax(filename == self.hf["filenames"])
+        except Exception as e:
+            print("file {} failed, but has keys {}".format(self.hf.filename,list(self.hf.keys())))
+            raise e
         
         #For some reason, this is an array, but it should be a value        
         self.label = self.hf["labels"][h5_index,...][0]
