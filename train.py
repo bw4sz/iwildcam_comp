@@ -63,11 +63,11 @@ training_split = training_split[training_split.location.isin(selected_locations)
 #Log m
 train_generator = Generator(training_split, 
                             batch_size=config["classification_model"]["batch_size"], 
-                            h5_dir=config["h5_dir"])
+                            h5_dir=config["train_h5_dir"])
 
 evaluation_generator = Generator(evaluation_split,
                             batch_size=config["classification_model"]["batch_size"], 
-                            h5_dir=config["h5_dir"])
+                            h5_dir=config["train_h5_dir"])
 
 #Create callbacks
 evalution_callback = callback.Evaluate(evaluation_generator, experiment)
