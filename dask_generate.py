@@ -147,7 +147,7 @@ def run_HPC():
                 
 if __name__ == "__main__":
     #Local debugging
-    run_local()
+    #run_local()
     
     #On Hypergator
     run_HPC()
