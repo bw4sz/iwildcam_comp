@@ -17,7 +17,7 @@ def check_h5s(data, h5_dir):
     finished = []
     for h5_filename in existing_h5s:
         try:
-            hdf5_file = h5py.File(h5_filename, mode='w')    
+            hdf5_file = h5py.File(h5_filename, mode='r')    
             finished.append(h5_filename)
         except:
             print("Removing location {}, can't open file".format(h5_filename))
