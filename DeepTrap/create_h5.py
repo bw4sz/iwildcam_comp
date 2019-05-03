@@ -25,12 +25,11 @@ def create_file(destination_dir, location, image_shape, n_images, overwrite=True
     #Create h5 dataset to fill
     height, width = image_shape
     hdf5_file.create_dataset("images", (n_images, height, width, 3), dtype='int')
-    hdf5_file.create_dataset("labels", (n_images,1) , dtype='int')
     hdf5_file.create_dataset("filenames", (n_images, 1), dtype='S10')
     
     return hdf5_file
 
-def write_records(hdf5_file, images,labels,filenames, image_shape):
+def write_records(hdf5_file, images,filenames, image_shape):
     """lists of the images, labels and filenames to hold in an h5 container"""
     
     for i in range(len(images)):
@@ -40,6 +39,5 @@ def write_records(hdf5_file, images,labels,filenames, image_shape):
         if images[i].shape != image_shape:
             images[i] = resize(images[i], image_shape)
         hdf5_file["images"][i,...] = images[i]
-        hdf5_file["labels"][i,...] = labels[i]
         hdf5_file["filenames"][i,...] = np.string_(filenames[i])
     

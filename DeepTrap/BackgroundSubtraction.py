@@ -12,14 +12,12 @@ from DeepTrap import create_h5
        
 class BackgroundModel():
     
-    def __init__(self,image_data, day_or_night, destination_dir, config, training=True):
+    def __init__(self,image_data, day_or_night, destination_dir, config):
         """Create a background model class
         image_data: pandas dataframe of image data
         day_or_night: is the sequence at "night" or 'day' to help set settings
         return a saved h5 file to disk with outputs for training/prediction
         """
-        #Training mode (load annotations)
-        self.training = training
         self.data = image_data
         
         #Set a global sequence background
@@ -155,7 +153,6 @@ class BackgroundModel():
         
         #Container for output boxes
         subtracted_images = [ ]
-        labels = []
         filenames = []
         
         for index, image_path in enumerate(images_to_run):
@@ -169,11 +166,7 @@ class BackgroundModel():
             threshold_image = self.apply(sequence_background, image)
             subtracted_images.append(threshold_image)
             
-            #grab label and filename
-            if self.training:
-                label = image_data[image_data.file_path == image_path].category_id.values[0]
-                labels.append(label)
-                
+            #grab filename
             filename = image_data[image_data.file_path == image_path].file_name.values[0]
             filenames.append(filename)
             
@@ -182,7 +175,7 @@ class BackgroundModel():
             #plt.imshow(threshold_image[:,:,0:])
         #plt.show()                
                            
-        return (subtracted_images, labels, filenames)
+        return (subtracted_images, filenames)
         
     def run_single(self, image_data):
         """image_data: The sequence level pandas data table"""
@@ -208,30 +201,25 @@ class BackgroundModel():
                 self.sequence_background = self.create_background(background_data, target_shape=image.shape)
             
             #if this was the only image, just return it
-            if sequence_background is None:
+            if self.sequence_background is None:
                 threshold_image = image
             else:
                 #image threshold
-                threshold_image = self.apply(sequence_background, image)
+                threshold_image = self.apply(self.sequence_background, image)
             
-            #grab label and filename
-            if self.training:
-                label = image_data[image_data.file_path == image_path].category_id.values[0]
-            else:
-                label = None
-                
+            #grab filename
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
             
-        return ([threshold_image], [label], [filename])
+        return ([threshold_image], [filename])
                 
         ##plot
         #plt.subplot(2,num_images,num_images + index+1)                
         #plt.imshow(threshold_image[:,:,0:])
         #plt.show()
     
-    def write_h5(self, images, labels, filenames):
-        """write a list of images, labels and filenames from a sequence"""
-        create_h5.write_records(self.h5_file, images, labels, filenames, 
+    def write_h5(self, images, filenames):
+        """write a list of images and filenames from a sequence"""
+        create_h5.write_records(self.h5_file, images, filenames, 
                                self.image_shape)
         
     def run(self):
@@ -252,16 +240,16 @@ class BackgroundModel():
             #self.plot_sequence(image_data)                  
             if is_sequence:
                 #Run background subtraction
-                seq_images, seq_labels, seq_filenames = self.run_sequence(image_data)
+                seq_images, seq_filenames = self.run_sequence(image_data)
             else:
                 #Get a global background model and individual image
-                seq_images, seq_labels, seq_filenames = self.run_single(image_data)
+                seq_images, seq_filenames = self.run_single(image_data)
                 
             #write to h5
-            self.write_h5(seq_images, seq_labels, seq_filenames)
+            self.write_h5(seq_images, seq_filenames)
             
         #report h5 file size
-        nlabels=len(self.h5_file["labels"])
+        nfiles = len(self.h5_file["filenames"])
         fname = self.h5_file.filename
         self.h5_file.close()
-        return "{} file exists with {} labels".format(fname, nlabels)
+        return "{} file exists with {} files".format(fname, nfiles)

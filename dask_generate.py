@@ -91,7 +91,7 @@ def run(config, debug=False):
     locations  = Locations.sort_locations(test_df)
         
     #parallel loop with error handling
-    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, training=False, config=config) for x in locations]
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
     persisted_values = persist(*values)
     for pv in persisted_values:
         try:

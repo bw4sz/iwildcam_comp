@@ -53,6 +53,6 @@ def test_preprocess_location():
         
     for location in locations:
         location_data = locations[location]
-        results = preprocess_location(location_data, destination_dir, config=config)    
+        results = Locations.preprocess_location(location_data, config, destination_dir)    
     
 test_preprocess_location()

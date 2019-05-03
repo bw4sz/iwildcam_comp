@@ -127,27 +127,12 @@ class Generator(keras.utils.Sequence):
     def load_annotation(self, image_index):
         """ Load annotations for an image_index.
         """
-        #Find the original data by filename
-        location = self.image_dict[image_index]["location"]
-        filename = self.image_dict[image_index]["file_path"]      
+        #Find the original data and crop
+        self.label = self.image_dict[image_index]["category_id"]
         
-        if location != self.previous_location:
-            h5_name = os.path.join(self.h5_dir,"{}.h5".format(location))
-            self.hf = h5py.File(h5_name, 'r')
-            
-            #reset location for easy loading
-            self.previous_location = location    
-            
-        try:
-            h5_index = np.argmax(filename == self.hf["filenames"])
-        except Exception as e:
-            print("file {} failed, but has keys {}".format(self.hf.filename,list(self.hf.keys())))
-            raise e
-        
-        #For some reason, this is an array, but it should be a value        
-        self.label = self.hf["labels"][h5_index,...][0]
+        #turn to categorical? not sure
         categorical_label = keras.utils.np_utils.to_categorical(self.label, num_classes=len(self.classes))
-
+        
         return categorical_label
     
     def load_annotations_group(self, group):

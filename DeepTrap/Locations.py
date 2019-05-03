@@ -41,12 +41,8 @@ def sort_locations(data):
     
     return location_dict
 
-def preprocess_location(location_data, config, destination_dir, training=True):
+def preprocess_location(location_data, config, destination_dir):
     """A dictionary object with keys day and night split by pandas image data"""
-    
-    location_images = []    
-    location_labels = []
-    location_filenames = []
     
     for day_or_night in location_data:
         #Selection image data
@@ -56,7 +52,7 @@ def preprocess_location(location_data, config, destination_dir, training=True):
         image_data = image_data.sort_values("date_captured")
         
         #Create a background model object for camera location of sequences
-        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night, training=training, destination_dir = destination_dir, config=config)
+        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night, destination_dir = destination_dir, config=config)
         
         #Select representative images based on temporal median difference
         #Create an h5 holder
