@@ -32,8 +32,11 @@ class Model():
         else:
             self.model = self.load_model()            
         
+        #compile focal loss
+        #self.model.compile("adam", [categorical_focal_loss(alpha=.25, gamma=2)], ["accuracy"])
+        
         #compile
-        self.model.compile("adam", [categorical_focal_loss(alpha=.25, gamma=2)], ["accuracy"])
+        self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
 
     def load_model(self):
         
