@@ -20,8 +20,10 @@ class BackgroundModel():
         """
         #Training mode (load annotations)
         self.training = training
-        
         self.data = image_data
+        
+        #Set a global sequence background
+        self.sequence_background = None
         
         #White balancing
         self.wb = cv2.xphoto.createSimpleWB()
@@ -193,15 +195,17 @@ class BackgroundModel():
             #Loag target image
             image = self.load_image(image_path)
             
-            #Create a background from the entire location image_object, except for target image
-            background_data = self.data[self.data.file_path != image_path]
-            
-            #There can be alot of images in location, limit for sake of memory
-            if background_data.shape[0] > 100:
-                background_data = background_data.sample(n=100)
+            #If this is the first time a global background is created:
+            if self.sequence_background is None:
+                #Create a background from the entire location image_object, except for target image
+                background_data = self.data[self.data.file_path != image_path]
                 
-            #Remove taget image
-            sequence_background = self.create_background(background_data, target_shape=image.shape)
+                #There can be alot of images in location, limit for sake of memory
+                if background_data.shape[0] > 50:
+                    background_data = background_data.sample(n=50)
+                    
+                #Remove taget image
+                self.sequence_background = self.create_background(background_data, target_shape=image.shape)
             
             #if this was the only image, just return it
             if sequence_background is None:
