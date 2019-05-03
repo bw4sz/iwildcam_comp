@@ -45,9 +45,12 @@ class Evaluate(keras.callbacks.Callback):
             self.experiment.log_figure("confusion_matrix",fig)
             
         #plot 10 sample images (or max)
-        samples_to_draw = min([20,self.generator.size()])
-        for x in range(samples_to_draw):
-            figname = self.generator.data.file_name.values[x]
-            title = "Label: {}, Prediction {}".format(ground_truth[x],predictions[x])
-            fig = self.generator.plot_image(x, title)
+        samples_to_draw = min([50,self.generator.size()])
+        images_to_plot = list(self.generator.data.groupby("category_id", as_index=False).apply(lambda x: x.head(10)).file_name.values)
+        for x in images_to_plot:
+            #Find index
+            index = self.generator.data[self.generator.data.file_name == x].index.values[0]
+            figname = self.generator.data.file_name.values[index]
+            title = "Label: {}, Prediction {}".format(ground_truth[index],predictions[index])
+            fig = self.generator.plot_image(index, title)
             self.experiment.log_figure(figname, fig,overwrite=True)
