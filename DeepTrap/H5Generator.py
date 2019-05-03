@@ -117,11 +117,6 @@ class Generator(keras.utils.Sequence):
         #Load image
         self.image = self.hf["images"][h5_index,...]
         
-
-        
-        #Try enforcing int type
-        self.image = self.image.astype(int)
-        
         return self.image
     
     def load_annotation(self, image_index):

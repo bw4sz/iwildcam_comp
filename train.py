@@ -3,7 +3,7 @@ experiment = comet_ml.Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_na
 
 #set matplotlib
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 
 import argparse
 import numpy as np
@@ -58,7 +58,7 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 
 #remove empty from set for testing.
 training_split = training_split[training_split.category_id==1]
-#evaluation_split =evaluation_split[evaluation_split.category_id!=0]
+evaluation_split =evaluation_split[evaluation_split.category_id!==1]
 
 experiment.log_parameter("Training Images",training_split.shape[0])
 
