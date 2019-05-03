@@ -132,7 +132,7 @@ def run_HPC():
         memory='7GB', 
         walltime='12:00:00',
         job_extra=extra_args,
-        local_directory="/home/b.weinstein/logs/", death_timeout=300)
+        local_directory="/home/b.weinstein/logs/", death_timeout=150)
     
     print(cluster.job_script())
     cluster.adapt(minimum=num_workers, maximum=num_workers)
