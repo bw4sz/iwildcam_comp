@@ -16,6 +16,6 @@ bgmodel:
     batch_size: 1
 classification_model:
     gpus: 1
-    epochs: 10
+    epochs: 20
     batch_size: 32
 
