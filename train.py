@@ -49,12 +49,12 @@ train_df = utils.check_images(train_df, config["train_data_path"])
 train_df = utils.check_h5s(train_df, config["train_h5_dir"])
 
 #Create keras training generator - split the training data into a validation set, both from the California site.
-training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
+training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"])
 
-#reduce training locations for temporary model checking, stop at 10000 images, but keep full locations.
-location_filter = training_split.groupby("location").size().sort_values().cumsum() < 10000 
-selected_locations = location_filter[location_filter==True].index.values
-training_split = training_split[training_split.location.isin(selected_locations)]
+##reduce training locations for temporary model checking, stop at 10000 images, but keep full locations.
+#location_filter = training_split.groupby("location").size().sort_values().cumsum() < 10000 
+#selected_locations = location_filter[location_filter==True].index.values
+#training_split = training_split[training_split.location.isin(selected_locations)]
 
 #remove empty from set for testing.
 #training_split = training_split[training_split.category_id!=0]

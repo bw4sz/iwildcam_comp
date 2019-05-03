@@ -10,6 +10,8 @@ import tensorflow as tf
 from .. import utils, preprocess
 from keras import backend as K
 
+from sklearn.utils import class_weight
+
 class Model():
     
     def __init__(self, config):
@@ -57,7 +59,7 @@ class Model():
         return model
         
     def train(self, train_generator, callbacks=None, evaluation_generator=None):
-                
+                        
         self.model.fit_generator(
             generator=train_generator,
             steps_per_epoch=train_generator.size()/self.config["classification_model"]["batch_size"],
