@@ -47,7 +47,7 @@ class Evaluate(keras.callbacks.Callback):
         #plot 10 sample images (or max)
         samples_to_draw = min([20,self.generator.size()])
         for x in range(samples_to_draw):
-            #figname = self.generator.data.file_path.values[x]
+            figname = self.generator.data.file_name.values[x]
             title = "Label: {}, Prediction {}".format(ground_truth[x],predictions[x])
             fig = self.generator.plot_image(x, title)
-            self.experiment.log_figure(fig,overwrite=True)
+            self.experiment.log_figure(figname, fig,overwrite=True)
