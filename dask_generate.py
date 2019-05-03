@@ -126,9 +126,9 @@ def run_HPC():
     ]
     
     cluster = SLURMCluster(
-        processes=1,
+        processes=2,
         queue='hpg2-compute',
-        cores=1, 
+        cores=2, 
         memory='10GB', 
         walltime='12:00:00',
         job_extra=extra_args,

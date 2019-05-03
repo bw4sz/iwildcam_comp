@@ -76,10 +76,10 @@ class BackgroundModel():
         
     def preprocess(self, img):
         """White balance and change color space"""
-        img_wb = self.wb.balanceWhite(img)
-        img_YCrCb = cv2.cvtColor(img_wb,cv2.COLOR_BGR2YCrCb)  
+        img = self.wb.balanceWhite(img)
+        #img = cv2.cvtColor(img,cv2.COLOR_BGR2YCR_CB)  
                 
-        return img_YCrCb
+        return img
     
     def resize_sequence(self, images, shape):
         """for a set of images, resize to target size if needed
@@ -118,15 +118,16 @@ class BackgroundModel():
     def post_process(self,image):
         """Assumes YCrCB color space
         """
-        #Scale just the luminance
-        image[:,:,0] = cv2.subtract(image[:,:,0], image[:,:,0].mean())
-        image[:,:,0][image[:,:,0]  < 0] = 0 
+        #Scale just the luminance, clamp negative values
+        #image[:,:,0] = cv2.subtract(image[:,:,0], image[:,:,0].mean())
+        
+        image = cv2.blur(image, (3,3))
     
         #divide by max and scale to 0-255 for each channel
         image[:,:,0] = image[:,:,0] / image[:,:,0].max() * 255
         image[:,:,1] = image[:,:,1] / image[:,:,1].max() * 255
         image[:,:,2] = image[:,:,2] / image[:,:,2].max() * 255
-                
+        
         return image
     
     def apply(self, background, image):
@@ -167,8 +168,9 @@ class BackgroundModel():
             filenames.append(filename)
             
             #plot
-            #plt.subplot(2,num_images,num_images + index+1)                
-            #plt.imshow(threshold_image)
+            #plt.subplot(2,num_images,num_images + index+1)
+            #back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
+            #plt.imshow(back_to_rgb)
         #plt.show()                
                            
         return (subtracted_images, filenames)
@@ -207,8 +209,9 @@ class BackgroundModel():
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
             
         ##plot
-        #plt.subplot(2,num_images,num_images + index+1)                
-        #plt.imshow(threshold_image)
+        #plt.subplot(2,num_images,num_images + index+1)            
+        #back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
+        #plt.imshow(back_to_rgb)
         #plt.show()
         
         return ([threshold_image], [filename])
