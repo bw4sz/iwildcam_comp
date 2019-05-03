@@ -105,7 +105,6 @@ class Generator(keras.utils.Sequence):
             h5_name = os.path.join(self.h5_dir,"{}.h5".format(location))
             self.hf = h5py.File(h5_name, 'r')
         
-        
         try:
             h5_index = np.argmax(filename == self.hf["filenames"])
         except Exception as e:
