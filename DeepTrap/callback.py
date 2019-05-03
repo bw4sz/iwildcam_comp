@@ -50,4 +50,4 @@ class Evaluate(keras.callbacks.Callback):
             figname = self.generator.image_data.file_path.values[x]
             title = "Label: {}, Prediction {}".format(ground_truth[x],predictions[x])
             fig = self.generator.plot_image(x, title)
-            self.experiment.log_figure(str(figname),fig)
+            self.experiment.log_figure(str(figname),fig,overwrite=True)
