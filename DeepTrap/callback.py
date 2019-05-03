@@ -51,6 +51,8 @@ class Evaluate(keras.callbacks.Callback):
             #Find index
             index = self.generator.data[self.generator.data.file_name == x].index.values[0]
             figname = self.generator.data.file_name.values[index]
-            title = "Label: {}, Prediction {}".format(ground_truth[index],predictions[index])
+            ground_class  = self.generator.name_to_label(ground_truth[index])
+            prediction_class  = self.generator.name_to_label(predictions[index])
+            title = "Label: {}, Prediction {}".format(ground_class,prediction_class)
             fig = self.generator.plot_image(index, title)
             self.experiment.log_figure(figname, fig,overwrite=True)
