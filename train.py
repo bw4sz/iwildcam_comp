@@ -3,6 +3,7 @@ experiment = comet_ml.Experiment(api_key="ypQZhYfs3nSyKzOfz13iuJpj2", project_na
 
 #set matplotlib
 import matplotlib
+matplotlib.use('Agg')
 
 import argparse
 import numpy as np
@@ -37,8 +38,6 @@ if mode.debug:
     config["classification_model"]["gpu"] = 1
     config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
     config["test_h5_dir"] = "/Users/Ben/Downloads/test/"    
-else:
-    matplotlib.use('Agg')
     
 #load annotations
 train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
