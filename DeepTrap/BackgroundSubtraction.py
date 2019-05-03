@@ -167,9 +167,9 @@ class BackgroundModel():
             filenames.append(filename)
             
             #plot
-            plt.subplot(2,num_images,num_images + index+1)                
-            plt.imshow(threshold_image)
-        plt.show()                
+            #plt.subplot(2,num_images,num_images + index+1)                
+            #plt.imshow(threshold_image)
+        #plt.show()                
                            
         return (subtracted_images, filenames)
         
@@ -207,9 +207,9 @@ class BackgroundModel():
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
             
         ##plot
-        plt.subplot(2,num_images,num_images + index+1)                
-        plt.imshow(threshold_image)
-        plt.show()
+        #plt.subplot(2,num_images,num_images + index+1)                
+        #plt.imshow(threshold_image)
+        #plt.show()
         
         return ([threshold_image], [filename])
         
@@ -234,7 +234,7 @@ class BackgroundModel():
             #Burst set of images?
             is_sequence = image_data.shape[0] > 1
 
-            self.plot_sequence(image_data)                  
+            #self.plot_sequence(image_data)                  
             if is_sequence:
                 #Run background subtraction
                 seq_images, seq_filenames = self.run_sequence(image_data)
