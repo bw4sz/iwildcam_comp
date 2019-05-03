@@ -104,16 +104,20 @@ class Generator(keras.utils.Sequence):
         if location != self.previous_location:
             h5_name = os.path.join(self.h5_dir,"{}.h5".format(location))
             self.hf = h5py.File(h5_name, 'r')
+            
+            #reset location for easy loading
+            self.previous_location = location            
         
         try:
             h5_index = np.argmax(filename == self.hf["filenames"])
         except Exception as e:
             print("file {} failed, but has keys {}".format(self.hf.filename,list(self.hf.keys())))
             raise e
+        
+        #Load image
         self.image = self.hf["images"][h5_index,...]
         
-        #reset location for easy loading
-        self.previous_location = location
+
         
         #Try enforcing int type
         self.image = self.image.astype(int)
@@ -127,6 +131,13 @@ class Generator(keras.utils.Sequence):
         location = self.image_dict[image_index]["location"]
         filename = self.image_dict[image_index]["file_path"]      
         
+        if location != self.previous_location:
+            h5_name = os.path.join(self.h5_dir,"{}.h5".format(location))
+            self.hf = h5py.File(h5_name, 'r')
+            
+            #reset location for easy loading
+            self.previous_location = location    
+            
         try:
             h5_index = np.argmax(filename == self.hf["filenames"])
         except Exception as e:
