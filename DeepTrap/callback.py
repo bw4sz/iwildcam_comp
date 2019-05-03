@@ -28,7 +28,7 @@ class Evaluate(keras.callbacks.Callback):
             ground_truth.append(self.generator.load_annotation(i))
         
         #Calculate f1
-        ground_truth=np.stack(ground_truth)
+        ground_truth = np.stack(ground_truth)
         ground_truth = np.argmax(ground_truth, axis=1)
         predictions =np.argmax(predictions, axis=1)
         
@@ -47,7 +47,7 @@ class Evaluate(keras.callbacks.Callback):
         #plot 10 sample images (or max)
         samples_to_draw = min([20,self.generator.size()])
         for x in range(samples_to_draw):
-            figname = self.generator.image_data.file_path.values[x]
+            figname = self.generator.data.file_path.values[x]
             title = "Label: {}, Prediction {}".format(ground_truth[x],predictions[x])
             fig = self.generator.plot_image(x, title)
             self.experiment.log_figure(str(figname),fig,overwrite=True)
