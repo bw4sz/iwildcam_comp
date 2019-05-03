@@ -5,7 +5,7 @@ test_data_path: /orange/ewhite/b.weinstein/CameraTrap/iWildCam_2019_IDFG/iWildCa
 #Preprocessing
 train_h5_dir: /orange/ewhite/b.weinstein/CameraTrap/preprocessed/train/
 test_h5_dir: /orange/ewhite/b.weinstein/CameraTrap/preprocessed/test/
-num_hipergator_workers: 30
+num_hipergator_workers: 20
 
 height: 299
 width: 299
