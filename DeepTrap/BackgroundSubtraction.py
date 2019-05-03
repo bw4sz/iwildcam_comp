@@ -119,18 +119,14 @@ class BackgroundModel():
         """Assumes YCrCB color space
         """
         #Scale just the luminance
-        image[:,:,0] = image[:,:,0]  - image[:,:,0].mean()
+        image[:,:,0] = cv2.subtract(image[:,:,0], image[:,:,0].mean())
+        image[:,:,0][image[:,:,0]  < 0] = 0 
     
-        #remove negative values
-        image *= (image>0)
-        
         #divide by max and scale to 0-255 for each channel
         image[:,:,0] = image[:,:,0] / image[:,:,0].max() * 255
         image[:,:,1] = image[:,:,1] / image[:,:,1].max() * 255
         image[:,:,2] = image[:,:,2] / image[:,:,2].max() * 255
-        
-        image = cv2.medianBlur(image, 7)
-        
+                
         return image
     
     def apply(self, background, image):
@@ -171,9 +167,9 @@ class BackgroundModel():
             filenames.append(filename)
             
             #plot
-            #plt.subplot(2,num_images,num_images + index+1)                
-            #plt.imshow(threshold_image[:,:,0:])
-        #plt.show()                
+            plt.subplot(2,num_images,num_images + index+1)                
+            plt.imshow(threshold_image)
+        plt.show()                
                            
         return (subtracted_images, filenames)
         
@@ -210,12 +206,13 @@ class BackgroundModel():
             #grab filename
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
             
-        return ([threshold_image], [filename])
-                
         ##plot
-        #plt.subplot(2,num_images,num_images + index+1)                
-        #plt.imshow(threshold_image[:,:,0:])
-        #plt.show()
+        plt.subplot(2,num_images,num_images + index+1)                
+        plt.imshow(threshold_image)
+        plt.show()
+        
+        return ([threshold_image], [filename])
+        
     
     def write_h5(self, images, filenames):
         """write a list of images and filenames from a sequence"""
@@ -237,7 +234,7 @@ class BackgroundModel():
             #Burst set of images?
             is_sequence = image_data.shape[0] > 1
 
-            #self.plot_sequence(image_data)                  
+            self.plot_sequence(image_data)                  
             if is_sequence:
                 #Run background subtraction
                 seq_images, seq_filenames = self.run_sequence(image_data)

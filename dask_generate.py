@@ -49,33 +49,33 @@ def run(config, debug=False):
         config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
         config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
         
-    #destination_dir = config["train_h5_dir"] 
-    ##check for image dir
-    #if not os.path.exists(destination_dir):
-        #os.mkdir(destination_dir)
+    destination_dir = config["train_h5_dir"] 
+    #check for image dir
+    if not os.path.exists(destination_dir):
+        os.mkdir(destination_dir)
             
-    ##Load train data
-    #train_df = pd.read_csv('data/train.csv')
-    #train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
-    #train_df = utils.check_images(train_df, config["train_data_path"])
+    #Load train data
+    train_df = pd.read_csv('data/train.csv')
+    train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
+    train_df = utils.check_images(train_df, config["train_data_path"])
     
-    ##Sort images into location
-    #locations  = Locations.sort_locations(train_df)
+    #Sort images into location
+    locations  = Locations.sort_locations(train_df)
     
-    #print("{} locations found".format(len(locations)))
+    print("{} locations found".format(len(locations)))
     
-    ##parallel loop with error handling    
-    #values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
-    #persisted_values = persist(*values)
-    #for pv in persisted_values:
-        #try:
-            #wait(pv)
-        #except Exception as e:
-            #print(e)
+    #parallel loop with error handling    
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
+    persisted_values = persist(*values)
+    for pv in persisted_values:
+        try:
+            wait(pv)
+        except Exception as e:
+            print(e)
     
-    ##Clean up Delete corrupt files
-    #h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
-    #test_h5s(h5s)
+    #Clean up Delete corrupt files
+    h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
+    test_h5s(h5s)
         
     #test data
     test_df = pd.read_csv('data/test.csv')
