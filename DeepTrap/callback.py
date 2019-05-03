@@ -25,9 +25,7 @@ class Evaluate(keras.callbacks.Callback):
         
         ground_truth = []
         for i in range(self.generator.size()):
-            image_names = list(self.generator.image_dict.keys())
-            key = image_names[i]
-            ground_truth.append(self.generator.load_annotation(key))
+            ground_truth.append(self.generator.load_annotation(i))
         
         #Calculate f1
         ground_truth=np.stack(ground_truth)
@@ -45,3 +43,7 @@ class Evaluate(keras.callbacks.Callback):
         if self.experiment:
             self.experiment.log_metric("f1 score", f1)        
             self.experiment.log_figure("confusion_matrix",fig)
+            
+        #plot 10 sample images
+        for x in range(10):
+            self.generator.plot_image(x, predictions[x])
