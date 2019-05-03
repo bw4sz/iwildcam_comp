@@ -29,8 +29,8 @@ class Evaluate(keras.callbacks.Callback):
         
         #Calculate f1
         ground_truth=np.stack(ground_truth)
-        ground_truth = np.argmax(ground_truth,axis=1)
-        predictions =np.argmax(predictions,axis=1)
+        ground_truth = np.argmax(ground_truth, axis=1)
+        predictions =np.argmax(predictions, axis=1)
         
         #Sanity check
         assert ground_truth.shape == predictions.shape, "Ground truth and predictions don't have the same shape!"
@@ -44,6 +44,9 @@ class Evaluate(keras.callbacks.Callback):
             self.experiment.log_metric("f1 score", f1)        
             self.experiment.log_figure("confusion_matrix",fig)
             
-        #plot 10 sample images
-        for x in range(10):
-            self.generator.plot_image(x, predictions[x])
+        #plot 10 sample images (or max)
+        samples_to_draw = max([15,self.generator.size()])
+        for x in range(samples_to_draw):
+            title = "Label: {}, Prediction {}".format(ground_truth[x],predictions[x])
+            fig = self.generator.plot_image(x, title)
+            self.experiment.log_figure(fig)

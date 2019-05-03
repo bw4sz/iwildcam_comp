@@ -58,9 +58,9 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 
 #remove empty from set for testing.
 training_split = training_split[training_split.category_id==1]
-evaluation_split =evaluation_split[evaluation_split.category_id==1]
+#evaluation_split =evaluation_split[evaluation_split.category_id==1]
 
-experiment.log_parameter("Training Images",training_split.shape[0])
+experiment.log_parameter("Training Images", training_split.shape[0])
 
 #Log m
 train_generator = Generator(training_split, 
@@ -73,6 +73,8 @@ assert train_generator.size() > 0, "No training data available"
 evaluation_generator = Generator(evaluation_split,
                             batch_size=config["classification_model"]["batch_size"], 
                             h5_dir=config["train_h5_dir"])
+
+assert evaluation_generator.size() > 0, "No evaluation data available"
 
 #Create callbacks
 evalution_callback = callback.Evaluate(evaluation_generator, experiment)
