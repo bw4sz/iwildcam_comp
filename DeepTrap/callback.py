@@ -4,6 +4,7 @@ from sklearn.metrics import f1_score
 import pandas as pd
 import numpy as np
 from DeepTrap import visualization, preprocess
+import matplotlib.pyplot as plt
 
 class Evaluate(keras.callbacks.Callback):
     """ Evaluation callback for arbitrary datasets.
@@ -60,3 +61,5 @@ class Evaluate(keras.callbacks.Callback):
             title = "Label: {}, Prediction {}".format(ground_class,prediction_class)
             fig = self.generator.plot_image(x, title)
             self.experiment.log_figure(x, fig,overwrite=True)
+            #Close figure
+            plt.clf()
