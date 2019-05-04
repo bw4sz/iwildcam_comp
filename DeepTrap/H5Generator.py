@@ -63,7 +63,7 @@ class Generator(keras.utils.Sequence):
         
         #Sort by location
         self.data = self.data.sort_values("location").reset_index()
-        self.image_dict = self.data.to_dict("index")
+        self.image_dict = self.data.set_index("file_name").to_dict("index")
         order = list(self.image_dict.keys())
         
         #Shuffle input order
@@ -96,7 +96,6 @@ class Generator(keras.utils.Sequence):
     def load_image(self, image_index):
         """ Load an image at the image_index.
         """
-        
         #Load an image from file based on location
         location = self.image_dict[image_index]["location"]
         filename = self.image_dict[image_index]["file_path"]                        
@@ -148,7 +147,7 @@ class Generator(keras.utils.Sequence):
         """
         for i in range(len(image_group)):
             # preprocess the image
-            image = preprocess.preprocess_image(image_group[i])
+            image_group[i] = preprocess.preprocess_image(image_group[i])
     
             # resize image
             #image_group[i] = preprocess.resize_image(image, size=self.image_size)

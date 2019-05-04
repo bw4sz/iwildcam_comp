@@ -59,8 +59,8 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 #remove empty from set for testing.
 #Try to minimize sources of risk here, just take a set of images from both
 if not mode.debug:
-    training_split = training_split[training_split.category_id.isin([0,1])].groupby("category_id",as_index=False).apply(lambda x: x.head(600))
-    #evaluation_split = evaluation_split[evaluation_split.category_id.isin([0,1])]
+    training_split = training_split[training_split.category_id.isin([0,1,2])].groupby("category_id",as_index=False).apply(lambda x: x.head(100))
+    evaluation_split = evaluation_split[evaluation_split.category_id.isin([0,1,2])].groupby("category_id",as_index=False).apply(lambda x: x.head(10))
 
 experiment.log_parameter("Training Images", training_split.shape[0])
 
@@ -77,7 +77,6 @@ evaluation_generator = Generator(evaluation_split,
                             h5_dir=config["train_h5_dir"])
 
 experiment.log_parameter("Evaluation Images", evaluation_generator.size())
-
 assert evaluation_generator.size() > 0, "No evaluation data available"
 
 #Create callbacks
