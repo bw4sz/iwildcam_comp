@@ -8,6 +8,12 @@ import numpy as np
 #DeepTrap
 from DeepTrap import create_h5
 
+#helper function
+def days_between(d1, d2):
+    d1 = datetime.strptime(d1, "%Y-%m-%d %H:%M:%S")
+    d2 = datetime.strptime(d2, "%Y-%m-%d %H:%M:%S")
+    return abs((d2 - d1).days)
+
 #Start a background subtraction object
        
 class BackgroundModel():
@@ -186,28 +192,24 @@ class BackgroundModel():
             #Loag target image
             image = self.load_image(image_path)
             
-            #If this is the first time a global background is created:
-            if self.sequence_background is None:
-                #Create a background from the entire location image_object, except for target image
-                background_data = self.data[self.data.file_path != image_path]
+            #Create a background from the entire location image_object, grabbing the 6 closest frames in time?
+            background_data = self.data[self.data.file_path != image_path]
+            if background_data.shape[0] < 5:
+                    threshold_image = image
+            else:
+                target_date = self.data[self.data.file_path == image_path].date_captured.values[0]
+                background_data["date_diff"] = background_data.date_captured.apply(lambda x: days_between(x,target_date))
+                background_data=background_data.sort_values("date_diff").head(5) 
                 
-                #There can be alot of images in location, limit for sake of memory
-                if background_data.shape[0] > 50:
-                    background_data = background_data.sample(n=50)
-                    
                 #Remove taget image
                 self.sequence_background = self.create_background(background_data, target_shape=image.shape)
-            
-            #if this was the only image, just return it
-            if self.sequence_background is None:
-                threshold_image = image
-            else:
+                                   
                 #image threshold
                 threshold_image = self.apply(self.sequence_background, image)
-            
+                
             #grab filename
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
-            
+                
         ##plot
         #plt.subplot(2,num_images,num_images + index+1)            
         #back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
