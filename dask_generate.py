@@ -66,13 +66,13 @@ def run(config, debug=False):
     print("{} locations found".format(len(locations)))
     
     ##parallel loop with error handling    
-    #values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
-    #persisted_values = persist(*values)
-    #for pv in persisted_values:
-        #try:
-            #wait(pv)
-        #except Exception as e:
-            #print(e)
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
+    persisted_values = persist(*values)
+    for pv in persisted_values:
+        try:
+            wait(pv)
+        except Exception as e:
+            print(e)
     
     #Clean up Delete corrupt files
     h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
@@ -129,8 +129,8 @@ def run_HPC():
     cluster = SLURMCluster(
         processes=2,
         queue='hpg2-compute',
-        cores=2, 
-        memory='10GB', 
+        cores=3, 
+        memory='11GB', 
         walltime='12:00:00',
         job_extra=extra_args,
         local_directory="/home/b.weinstein/logs/", death_timeout=150)
