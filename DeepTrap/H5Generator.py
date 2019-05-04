@@ -163,14 +163,14 @@ class Generator(keras.utils.Sequence):
         #Show background subtracted image
         fig=plt.figure()
         image = self.load_image(image_index)
-        plt.subplot(2,1,1)
+        plt.subplot(1,2,1)
         plt.imshow(image)
         
         #Show original
         original_path_name = os.path.join(self.image_dir,image_index)
         original = cv2.imread(original_path_name)
         rgb_original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
-        plt.subplot(2,1,2)
+        plt.subplot(1,2,2)
         plt.imshow(rgb_original)
         plt.title(title)        
         return fig
