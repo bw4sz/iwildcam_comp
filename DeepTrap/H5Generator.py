@@ -8,10 +8,11 @@ import random
 from PIL import Image
 import glob
 import h5py
+from matplotlib import pyplot as plt 
+import cv2
 
 from DeepTrap.utils import classes as classification_classes
 from DeepTrap import preprocess
-from DeepTrap.visualization import draw_annotation
 
 class Generator(keras.utils.Sequence):
     """ Generate data for a custom dataset.
@@ -28,6 +29,7 @@ class Generator(keras.utils.Sequence):
         self,
         data,
         h5_dir,
+        image_dir,
         batch_size,
         classes=classification_classes,
         training=True
@@ -38,6 +40,7 @@ class Generator(keras.utils.Sequence):
         #Assign config and intiliaze values
         self.data = data
         self.h5_dir = h5_dir
+        self.image_dir = image_dir
         self.training=training
         self.batch_size = batch_size
 
@@ -154,10 +157,22 @@ class Generator(keras.utils.Sequence):
         
         return image_group
         
-    def plot_image(self, image_index, label):
+    def plot_image(self, image_index, title):
         """plot current image"""
-        self.load_image(image_index)
-        fig = draw_annotation(self.image, label)
+        
+        #Show background subtracted image
+        fig=plt.figure()
+        image = self.load_image(image_index)
+        plt.subplot(2,1,1)
+        plt.imshow(image)
+        
+        #Show original
+        original_path_name = os.path.join(self.image_dir,image_index)
+        original = cv2.imread(original_path_name)
+        rgb_original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
+        plt.subplot(2,1,2)
+        plt.imshow(rgb_original)
+        plt.title(title)        
         return fig
     
     def compute_inputs(self, image_group):

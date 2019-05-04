@@ -72,14 +72,15 @@ experiment.log_parameter("Training Images", training_split.shape[0])
 #Log 
 train_generator = Generator(training_split, 
                             batch_size=config["classification_model"]["batch_size"], 
-                            h5_dir=config["train_h5_dir"])
+                            h5_dir=config["train_h5_dir"],
+                            image_dir=config["train_data_path"])
 
 #Sanity check
 assert train_generator.size() > 0, "No training data available"
 
 evaluation_generator = Generator(evaluation_split,
                             batch_size=config["classification_model"]["batch_size"], 
-                            h5_dir=config["train_h5_dir"])
+                            h5_dir=config["train_h5_dir"], image_dir=config["train_data_path"])
 
 experiment.log_parameter("Evaluation Images", evaluation_generator.size())
 assert evaluation_generator.size() > 0, "No evaluation data available"
@@ -106,7 +107,7 @@ if not mode.debug:
 validation_generator = Generator(test_df,
                                  batch_size=config["classification_model"]["batch_size"], 
                                  h5_dir=config["test_h5_dir"],
-                                 training=False)
+                                 training=False,image_dir=config["test_data_path"])
 #predict
 predictions = model.predict(validation_generator)
 

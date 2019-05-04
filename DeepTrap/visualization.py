@@ -44,34 +44,6 @@ def plot_images(generator, n=None, predictions = None, annotations = True, show=
         if experiment:
             experiment.log_figure(figure = fig)
 
-#Draw annotations and labels
-def draw_annotation(image, label, box=None):
-    
-    # Create figure and axes
-    fig,ax = plt.subplots(1)
-    
-    # Display the image
-    ax.imshow(image)
-    
-    if box:
-        #Bottom left corner is xmin, ymin
-        xmin, ymin, xmax, ymax =  box 
-        h = ymin - ymax
-        w = xmax - xmin    
-        
-        # Create a Rectangle patch
-        rect = patches.Rectangle((xmin,ymin),h,w,linewidth=1,edgecolor='r',facecolor='none')
-        
-        # Add the patch to the Axes
-        ax.add_patch(rect)
-        
-        #add text on top left
-        plt.text(xmin, ymax,label)
-    else:
-        plt.title(label)
-    
-    return fig
-
 def plot_confusion_matrix(y_true, y_pred, classes,
                           normalize=True,
                           title=None,
