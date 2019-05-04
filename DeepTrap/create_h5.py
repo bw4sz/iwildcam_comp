@@ -29,7 +29,7 @@ def create_files(destination_dir, location, image_shape, n_images, overwrite=Tru
     
     #Create a csv file to track index
     csv_filename = os.path.join(destination_dir, str(location) + ".csv")
-    csv_file = open(csv_filename, 'w')
+    csv_file = open(csv_filename, 'a')
     
     #write header
     writer = csv.writer(csv_file)
