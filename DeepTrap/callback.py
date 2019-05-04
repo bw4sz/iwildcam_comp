@@ -51,12 +51,12 @@ class Evaluate(keras.callbacks.Callback):
             self.experiment.log_figure("confusion_matrix",fig)
             
         #plot 10 sample images (or max)
-        samples_to_draw = min([50,self.generator.size()])
         images_to_plot = list(self.generator.data.groupby("category_id", as_index=False).apply(lambda x: x.head(10)).file_name.values)
         for x in images_to_plot:
             #Find annotation
-            ground_class = self.generator.name_to_label(generator.load_annotations(x))
-            prediction_class  = self.generator.name_to_label(predictions[index])
+            class_label = np.argmax(self.generator.load_annotation(x))
+            ground_class = self.generator.name_to_label(class_label)
+            prediction_class  = self.generator.name_to_label(predictions[x])
             title = "Label: {}, Prediction {}".format(ground_class,prediction_class)
             fig = self.generator.plot_image(x, title)
             self.experiment.log_figure(x, fig,overwrite=True)
