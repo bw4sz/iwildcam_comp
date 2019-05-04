@@ -101,7 +101,6 @@ class Generator(keras.utils.Sequence):
         """
         #Load an image from file based on location
         location = self.image_dict[image_index]["location"]
-        filename = self.image_dict[image_index]["file_name"]                        
         
         if location != self.previous_location:
             h5_name = os.path.join(self.h5_dir,"{}.h5".format(location))
@@ -109,13 +108,13 @@ class Generator(keras.utils.Sequence):
             
             #load filename csv
             csv_name = os.path.join(self.h5_dir,"{}.csv".format(location))
-            self.filename_csv = pd.DataFrame.from_csv(csv_name)
+            self.filename_csv = pd.read_csv(csv_name)
             
             #reset location for easy loading
             self.previous_location = location            
         
         #Reading file_name from h5, it needs to be decoded
-        h5_index = self.filename_csv[filename==self.filename_csv.filename].h5_index.values[0]
+        h5_index = self.filename_csv[image_index==self.filename_csv.filename].h5_index.values[0]
         
         #Load image
         self.image = self.hf["images"][h5_index,...]
