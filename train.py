@@ -61,7 +61,7 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 #remove empty from set for testing.
 #Try to minimize sources of risk here, just take a set of images from both
 if not mode.debug:
-    training_split = training_split.groupby("category_id",as_index=False).apply(lambda x: x.head(5000))
+    training_split = training_split.groupby("category_id",as_index=False).apply(lambda x: x.head(10000))
     #evaluation_split = evaluation_split[evaluation_split.category_id.isin([0,1,10])].groupby("category_id",as_index=False).apply(lambda x: x.head(10))
 
 experiment.log_parameter("Training Images", training_split.shape[0])
