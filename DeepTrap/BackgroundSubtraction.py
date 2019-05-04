@@ -38,7 +38,8 @@ class BackgroundModel():
         n_images = image_data.shape[0]
         self.image_shape = (config["height"], config["width"])
         
-        self.h5_file = create_h5.create_file(
+        #Create an h5 and csv file
+        self.h5_file, self.csv_file = create_h5.create_files(
             destination_dir,
             location,
             image_shape = self.image_shape,
@@ -176,7 +177,7 @@ class BackgroundModel():
             #plot
             #plt.subplot(2,num_images,num_images + index+1)
             #back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
-            #plt.imshow(back_to_rgb)
+           #plt.imshow(back_to_rgb)
         #plt.show()                
                            
         return (subtracted_images, filenames)
@@ -218,11 +219,9 @@ class BackgroundModel():
         
         return ([threshold_image], [filename])
         
-    
     def write_h5(self, images, filenames):
         """write a list of images and filenames from a sequence"""
-        create_h5.write_records(self.h5_file, images, filenames, 
-                               self.image_shape)
+        create_h5.write_records(self.h5_file, self.csv_file, images, filenames, self.image_shape)
         
     def run(self):
         
@@ -251,7 +250,8 @@ class BackgroundModel():
             self.write_h5(seq_images, seq_filenames)
             
         #report h5 file size
-        nfiles = len(self.h5_file["filenames"])
+        nfiles = len(self.h5_file["images"])
         fname = self.h5_file.filename
         self.h5_file.close()
+        self.csv_file.close()
         return "{} file exists with {} files".format(fname, nfiles)

@@ -62,7 +62,6 @@ def run(config, debug=False):
     
     #Sort images into location
     locations  = Locations.sort_locations(train_df)
-    
     print("{} locations found".format(len(locations)))
     
     ##parallel loop with error handling    
@@ -147,7 +146,7 @@ def run_HPC():
                 
 if __name__ == "__main__":
     #Local debugging
-    #run_local()
+    run_local()
     
     #On Hypergator
-    run_HPC()
+    #run_HPC()

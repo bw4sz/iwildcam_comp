@@ -101,20 +101,21 @@ class Generator(keras.utils.Sequence):
         """
         #Load an image from file based on location
         location = self.image_dict[image_index]["location"]
-        filename = self.image_dict[image_index]["file_path"]                        
+        filename = self.image_dict[image_index]["file_name"]                        
         
         if location != self.previous_location:
             h5_name = os.path.join(self.h5_dir,"{}.h5".format(location))
             self.hf = h5py.File(h5_name, 'r')
             
+            #load filename csv
+            csv_name = os.path.join(self.h5_dir,"{}.csv".format(location))
+            self.filename_csv = pd.DataFrame.from_csv(csv_name)
+            
             #reset location for easy loading
             self.previous_location = location            
         
-        try:
-            h5_index = np.argmax(filename == self.hf["filenames"])
-        except Exception as e:
-            print("file {} failed, but has keys {}".format(self.hf.filename,list(self.hf.keys())))
-            raise e
+        #Reading file_name from h5, it needs to be decoded
+        h5_index = self.filename_csv[filename==self.filename_csv.filename].h5_index.values[0]
         
         #Load image
         self.image = self.hf["images"][h5_index,...]
