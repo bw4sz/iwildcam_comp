@@ -27,6 +27,7 @@ def test_h5s(h5s):
         delete_corrupt_h5(f)
     
 def delete_corrupt_h5(f):
+    counter = 0
     try:
         hf = h5py.File(f, 'r')
         shape=hf['images'][0,].shape
@@ -64,14 +65,14 @@ def run(config, debug=False):
     
     print("{} locations found".format(len(locations)))
     
-    #parallel loop with error handling    
-    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
-    persisted_values = persist(*values)
-    for pv in persisted_values:
-        try:
-            wait(pv)
-        except Exception as e:
-            print(e)
+    ##parallel loop with error handling    
+    #values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
+    #persisted_values = persist(*values)
+    #for pv in persisted_values:
+        #try:
+            #wait(pv)
+        #except Exception as e:
+            #print(e)
     
     #Clean up Delete corrupt files
     h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
