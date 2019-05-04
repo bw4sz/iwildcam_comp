@@ -25,6 +25,8 @@ dirname = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 #Read and log config file
 config = utils.read_config()
+
+#log
 experiment.log_parameters(config)
 experiment.log_parameters(prefix= "classification_model", dic=config["classification_model"])
 experiment.log_parameters(prefix= "bgmodel", dic=config["bgmodel"])
@@ -59,10 +61,13 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 #remove empty from set for testing.
 #Try to minimize sources of risk here, just take a set of images from both
 if not mode.debug:
-    training_split = training_split.groupby("category_id",as_index=False).apply(lambda x: x.head(5000))
+    training_split = training_split.groupby("category_id",as_index=False).apply(lambda x: x.head(2000))
     #evaluation_split = evaluation_split[evaluation_split.category_id.isin([0,1,10])].groupby("category_id",as_index=False).apply(lambda x: x.head(10))
 
 experiment.log_parameter("Training Images", training_split.shape[0])
+
+#error has multiple
+#5858c2ed-23d2-11e8-a6a3-ec086b02610b.jpg
 
 #Log 
 train_generator = Generator(training_split, 

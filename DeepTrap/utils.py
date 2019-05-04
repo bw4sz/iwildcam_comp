@@ -51,6 +51,8 @@ def read_train_data(image_dir, supp_data=False):
     train_df['dataset'] = "train"    
     train_df['class'] = train_df['category_id'].apply(lambda x: classes[x])
     
+    train_df = train_df.drop_duplicates(subset="file_name")
+    
     if supp_data:
         print("Loading supp data")
         supp_data_df = read_supp_data()
@@ -72,7 +74,7 @@ def read_supp_data():
     
     #match to class names
     full_df['class'] = full_df['category_id'].apply(lambda x: classes[x])
-    
+        
     return full_df
 
 def read_test_data(image_dir):
@@ -80,10 +82,10 @@ def read_test_data(image_dir):
     test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(image_dir,f'{x}.jpg'))
     test_df['dataset'] = "test"    
         
+    test_df = test_df.drop_duplicates(subset="file_name")
+        
     return test_df
 
-def miniset(train_df):
-    pass
 
 def split_training(train_df, image_dir):
     """Split the training data based on camera locations, as this most closely mirrors the competition goal"""
