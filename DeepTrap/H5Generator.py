@@ -10,6 +10,7 @@ import glob
 import h5py
 from matplotlib import pyplot as plt 
 import cv2
+import pandas as pd
 
 from DeepTrap.utils import classes as classification_classes
 from DeepTrap import preprocess
