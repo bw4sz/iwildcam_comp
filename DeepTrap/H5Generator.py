@@ -103,7 +103,7 @@ class Generator(keras.utils.Sequence):
         #Load an image from file based on location
         location = self.image_dict[image_index]["location"]
         h5_name = os.path.join(self.h5_dir,"{}.h5".format(location))
-        self.hf = h5py.File(h5_name, 'r')
+        hf = h5py.File(h5_name, 'r')
         
         #load filename csv
         csv_name = os.path.join(self.h5_dir,"{}.csv".format(location))
@@ -113,7 +113,14 @@ class Generator(keras.utils.Sequence):
         h5_index = filename_csv[image_index==filename_csv.filename].h5_index.values.astype("int")[0]
         
         #Load image
-        self.image = self.hf["images"][h5_index,...]
+        try:
+            self.image = hf["images"][h5_index,...]
+        except Exception as e:
+            print("Could not load image {} from location: {}, the length of the images dataset is {} and indexing at position {}".format(image_index,
+                                                                                                                                         location,
+                                                                                                                                         len(hf["images"][h5_index,...],
+                                                                                                                                        h5_index)))
+            raise e
         
         return self.image
     
