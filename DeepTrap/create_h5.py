@@ -29,12 +29,16 @@ def create_files(destination_dir, location, image_shape, n_images, overwrite=Tru
     
     #Create a csv file to track index
     csv_filename = os.path.join(destination_dir, str(location) + ".csv")
-    csv_file = open(csv_filename, 'a')
+    csv_file = open(csv_filename, 'w')
     
-    #write header
+    #write header - overwriting previous file
     writer = csv.writer(csv_file)
     writer.writerow(["filename", "h5_index"])    
-        
+    csv_file.close()
+    
+    #reopen as append since we will be adding records to it
+    csv_file = open(csv_filename, 'a')
+    
     return hdf5_file, csv_file
 
 def write_records(hdf5_file, csv_file, images,filenames, image_shape):
