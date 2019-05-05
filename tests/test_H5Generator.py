@@ -26,11 +26,12 @@ def test_Generator():
     training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"])
  
     #Known size
-    assert training_split.shape == (26, 13), "Training split wrong size"
+    assert training_split.shape == (29, 13), "Training split wrong size"
     
     train_generator = H5Generator.Generator(training_split, 
                                 batch_size=config["classification_model"]["batch_size"], 
-                                h5_dir=config["train_h5_dir"])
+                                h5_dir = config["train_h5_dir"],
+                                image_dir = config["train_data_path"])
     
     #Try a sample image load
     sample_id = "59817a83-23d2-11e8-a6a3-ec086b02610b.jpg"

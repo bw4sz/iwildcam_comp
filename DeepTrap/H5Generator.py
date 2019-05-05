@@ -113,7 +113,9 @@ class Generator(keras.utils.Sequence):
         
         #Load image
         try:
-            h5_index = filename_csv[image_index==filename_csv.filename].h5_index.values.astype("int")[0]            
+            h5_index_df = filename_csv[image_index==filename_csv.filename]
+            assert h5_index_df.shape[0] > 0, "file name {} is not present in csv {}".format({image_index,csv_name})
+            h5_index= h5_index_df.h5_index.values.astype("int")[0]            
             self.image = hf["images"][h5_index,...]
         except Exception as e:
             print("Could not load image {} from location: {}, the length of the images dataset is {}".format(image_index,

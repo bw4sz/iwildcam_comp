@@ -2,6 +2,7 @@ import sys
 import pytest
 import os
 import pandas as pd
+import h5py
 
 #Path hack - how to make this more portable?
 sys.path.append('/Users/ben/Documents/iwildcam_comp/')
@@ -32,27 +33,16 @@ def test_preprocess_location():
     #Sort images into location
     locations  = Locations.sort_locations(train_df)
     
-    results = []
-    for location in locations:
-        location_data = locations[location]
-        message = Locations.preprocess_location(location_data, destination_dir=destination_dir, config=config)    
-        results.append(message)
+    #Grab known location to test
+    location_data = locations[21]
+    message = Locations.preprocess_location(location_data, destination_dir=destination_dir, config=config)    
         
-    #test data
-    test_df = pd.read_csv('../data/test.csv')
-    test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(config["test_data_path"], f'{x}.jpg'))
-    test_df = utils.check_images(test_df, config["test_data_path"])
+    #Read and test results
+    sample_csv = pd.read_csv(os.path.join(destination_dir,"21.csv"))
+    sample_h5 = h5py.File(os.path.join(destination_dir,"21.h5"))
     
-    destination_dir = config["test_h5_dir"] 
-    #check for image dir
-    if not os.path.exists(destination_dir):
-        os.mkdir(destination_dir)
-        
-    #Sort images into location
-    locations  = Locations.sort_locations(test_df)
-        
-    for location in locations:
-        location_data = locations[location]
-        results = Locations.preprocess_location(location_data, config, destination_dir)    
+    #test length
+    assert sample_csv.shape[0] == train_df[train_df.location==21].shape[0], "csv shape does not match input data"
+    assert len(sample_h5["images"]) == train_df[train_df.location==21].shape[0], "h5 shape does not match input data"
     
 test_preprocess_location()

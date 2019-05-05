@@ -41,7 +41,7 @@ def create_files(destination_dir, location, image_shape, n_images, overwrite=Tru
     
     return hdf5_file, csv_file
 
-def write_records(hdf5_file, csv_file, images, filenames, image_shape, h5_index):
+def write_records(hdf5_file, csv_file, h5_index, images, filenames, image_shape):
     """lists of the images, labels and filenames to hold in an h5 container
     h5_index is the next available counter in the dataset"""
         

@@ -10,22 +10,25 @@ from DeepTrap import create_h5
 
 #helper function
 def days_between(d1, d2):
-    #TODO error Exception: ValueError("time data '11 11' does not match format '%Y-%m-%d %H:%M:%S'",) use try loop and set to high value?
-    d1 = datetime.strptime(d1, "%Y-%m-%d %H:%M:%S")
-    d2 = datetime.strptime(d2, "%Y-%m-%d %H:%M:%S")
-    return abs((d2 - d1).days)
+    try:
+        d1 = datetime.strptime(d1, "%Y-%m-%d %H:%M:%S")
+        d2 = datetime.strptime(d2, "%Y-%m-%d %H:%M:%S")
+        day_diff = abs((d2 - d1).days)
+    except:
+        print("error in date transform, setting to large value (100)")
+        day_diff = 0
+    return day_diff
 
 #Start a background subtraction object
-       
 class BackgroundModel():
     
-    def __init__(self,image_data, day_or_night, destination_dir, config):
+    def __init__(self,image_data, target_shape):
         """Create a background model class
         image_data: pandas dataframe of image data
-        day_or_night: is the sequence at "night" or 'day' to help set settings
-        return a saved h5 file to disk with outputs for training/prediction
+        return A Object of Class Background Model
         """
         self.data = image_data
+        self.target_shape = target_shape
         
         #Set a global sequence background
         self.sequence_background = None
@@ -33,22 +36,6 @@ class BackgroundModel():
         #White balancing
         self.wb = cv2.xphoto.createSimpleWB()
         self.wb.setP(0.4)
-        
-        #Create h5 container for results
-        location = image_data.location.unique()[0]  
-        n_images = image_data.shape[0]
-        self.image_shape = (config["height"], config["width"])
-        
-        #Create an h5 and csv file
-        self.h5_file, self.csv_file = create_h5.create_files(
-            destination_dir,
-            location,
-            image_shape = self.image_shape,
-            n_images = n_images) 
-        
-        #If overwrite and file exists, exit.
-        if self.h5_file is None:
-            return None
         
     def split_sequences(self):
         """Divide pandas dataframe into dictionary of sequences of images"""
@@ -220,20 +207,20 @@ class BackgroundModel():
         
         return ([threshold_image], [filename])
         
-    def write_h5(self, images, filenames, h5_index):
+    def write_h5(self, h5_file, csv_file, h5_index, images, filenames, target_shape):
         """write a list of images and filenames from a sequence
         h5_index is a counter to point towards the position in the object. Should not be used in parallel, is not thread safe"""
-        h5_index = create_h5.write_records(self.h5_file, self.csv_file, images, filenames, self.image_shape, h5_index)
+        h5_index = create_h5.write_records(h5_file, csv_file, h5_index, images, filenames, target_shape)
         return h5_index
         
-    def run(self):
+    def run(self, h5_file, csv_file, h5_index):
+        """Run a location and place results in an h5 image container and csv metadata"""
         
         #split into sequences
         sequence_dict = self.split_sequences()
         print("{} sequences found".format(len(sequence_dict)))
         
         #target images container
-        h5_index = 0
         for sequence in sequence_dict:
             
             #Get image data
@@ -251,12 +238,7 @@ class BackgroundModel():
                 seq_images, seq_filenames = self.run_single(image_data)
                 
             #write to h5, preserve index
-            h5_index = self.write_h5(seq_images, seq_filenames, h5_index)
-            
-        #report h5 file size
-        nfiles = len(self.h5_file["images"])
-        fname = self.h5_file.filename
+            h5_index = self.write_h5(h5_file, csv_file, h5_index, seq_images, seq_filenames, self.target_shape)
         
-        self.h5_file.close()
-        self.csv_file.close()
-        return "{} file exists with {} files".format(fname, nfiles)
+        return h5_index
+            

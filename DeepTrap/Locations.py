@@ -6,10 +6,7 @@ import numpy as np
 from datetime import datetime
 
 #DeepTrap
-if __name__ == "__main__":
-    import BackgroundSubtraction, create_h5, utils
-else:
-    from DeepTrap import BackgroundSubtraction, create_h5, utils
+from DeepTrap import BackgroundSubtraction, create_h5, utils
 
 def convert_time(time_string):
     try:
@@ -44,7 +41,22 @@ def sort_locations(data):
 def preprocess_location(location_data, config, destination_dir):
     """A dictionary object with keys day and night split by pandas image data"""
     
+    #Create h5 file for location holder
+    location = location_data["day"].location.unique()[0]      
+    
+    #Create an h5 and csv file
+    n_images = location_data["day"].shape[0] + location_data["night"].shape[0] 
+    image_shape = (config["height"], config["width"])
+    
+    h5_file, csv_file = create_h5.create_files(
+        destination_dir,
+        location,
+        image_shape = image_shape,
+        n_images = n_images) 
+    
+    h5_index = 0 
     for day_or_night in location_data:
+        
         #Selection image data
         image_data = location_data[day_or_night]
         
@@ -52,14 +64,24 @@ def preprocess_location(location_data, config, destination_dir):
         image_data = image_data.sort_values("date_captured")
         
         #Create a background model object for camera location of sequences
-        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night, destination_dir = destination_dir, config=config)
+        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, target_shape = image_shape)
         
         #Select representative images based on temporal median difference
-        #Create an h5 holder
+        #place outputs in a csv and h5 holder position
         if bgmodel:
-            message = bgmodel.run()
+            h5_index = bgmodel.run(h5_file, csv_file, h5_index)
         else:
-            message = "File exists, skipping location"
+            print("File exists, skipping location")
         
-    print(message)
-    return message
+    #close files
+    #report h5 file size
+    nfiles = len(h5_file["images"])
+    fname = h5_file.filename
+    
+    csv_file.close()
+    h5_file.close()
+    
+    print("{} file exists with {} files".format(fname, nfiles))
+    return "{} file exists with {} files".format(fname, nfiles)
+        
+        
