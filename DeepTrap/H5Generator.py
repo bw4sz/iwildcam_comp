@@ -115,7 +115,7 @@ class Generator(keras.utils.Sequence):
             self.previous_location = location            
         
         #Reading file_name from h5, it needs to be decoded
-        h5_index = self.filename_csv[image_index==self.filename_csv.filename].h5_index.values[0]
+        h5_index = self.filename_csv[image_index==self.filename_csv.filename].h5_index.values.astype("int")[0]
         
         #Load image
         self.image = self.hf["images"][h5_index,...]
