@@ -69,7 +69,7 @@ class Model():
             shuffle=False,
             callbacks=callbacks,
             use_multiprocessing = False,
-            workers=0,
+            workers=1,
             max_queue_size=1)       
             
     def predict(self, generator):
