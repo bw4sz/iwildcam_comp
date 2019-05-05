@@ -118,8 +118,8 @@ class Generator(keras.utils.Sequence):
         except Exception as e:
             print("Could not load image {} from location: {}, the length of the images dataset is {} and indexing at position {}".format(image_index,
                                                                                                                                          location,
-                                                                                                                                         len(hf["images"][h5_index,...],
-                                                                                                                                        h5_index)))
+                                                                                                                                         len(hf["images"]),
+                                                                                                                                        h5_index))
             raise e
         
         return self.image
