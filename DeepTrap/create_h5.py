@@ -41,15 +41,22 @@ def create_files(destination_dir, location, image_shape, n_images, overwrite=Tru
     
     return hdf5_file, csv_file
 
-def write_records(hdf5_file, csv_file, images,filenames, image_shape):
-    """lists of the images, labels and filenames to hold in an h5 container"""
-    
-    for i in range(len(images)):
+def write_records(hdf5_file, csv_file, images, filenames, image_shape, h5_index):
+    """lists of the images, labels and filenames to hold in an h5 container
+    h5_index is the next available counter in the dataset"""
         
+    for i in range(len(images)):
         #if not the desired size, resize
         if images[i].shape != image_shape:
             images[i] = resize(images[i], image_shape)
-        hdf5_file["images"][i,...] = images[i]
         
-        df = pd.DataFrame({"file_name":[filenames[i]], "h5_index": [i]})
-        df.to_csv(csv_file, header=False, index=False)    
+        #Place image at index position
+        hdf5_file["images"][h5_index,...] = images[i]
+        
+        df = pd.DataFrame({"file_name":[filenames[i]], "h5_index": [h5_index]})
+        df.to_csv(csv_file, header=False, index=False)   
+        
+        #advance the index 
+        h5_index+=1
+        
+    return h5_index

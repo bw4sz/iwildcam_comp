@@ -219,9 +219,11 @@ class BackgroundModel():
         
         return ([threshold_image], [filename])
         
-    def write_h5(self, images, filenames):
-        """write a list of images and filenames from a sequence"""
-        create_h5.write_records(self.h5_file, self.csv_file, images, filenames, self.image_shape)
+    def write_h5(self, images, filenames, h5_index):
+        """write a list of images and filenames from a sequence
+        h5_index is a counter to point towards the position in the object. Should not be used in parallel, is not thread safe"""
+        h5_index = create_h5.write_records(self.h5_file, self.csv_file, images, filenames, self.image_shape, h5_index)
+        return h5_index
         
     def run(self):
         
@@ -230,6 +232,7 @@ class BackgroundModel():
         print("{} sequences found".format(len(sequence_dict)))
         
         #target images container
+        h5_index = 0
         for sequence in sequence_dict:
             
             #Get image data
@@ -246,12 +249,13 @@ class BackgroundModel():
                 #Get a global background model and individual image
                 seq_images, seq_filenames = self.run_single(image_data)
                 
-            #write to h5
-            self.write_h5(seq_images, seq_filenames)
+            #write to h5, preserve index
+            h5_index = self.write_h5(seq_images, seq_filenames, h5_index)
             
         #report h5 file size
         nfiles = len(self.h5_file["images"])
         fname = self.h5_file.filename
+        
         self.h5_file.close()
         self.csv_file.close()
         return "{} file exists with {} files".format(fname, nfiles)
