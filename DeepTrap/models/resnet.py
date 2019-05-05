@@ -63,7 +63,6 @@ class Model():
         self.model.fit_generator(
             generator=train_generator,
             steps_per_epoch=train_generator.size()/self.config["classification_model"]["batch_size"],
-            validation_steps = evaluation_generator.size()/self.config["classification_model"]["batch_size"],
             epochs=self.config["classification_model"]["epochs"],
             verbose=1,
             validation_data=evaluation_generator,

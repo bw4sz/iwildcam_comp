@@ -10,6 +10,7 @@ from DeepTrap import create_h5
 
 #helper function
 def days_between(d1, d2):
+    #TODO error Exception: ValueError("time data '11 11' does not match format '%Y-%m-%d %H:%M:%S'",) use try loop and set to high value?
     d1 = datetime.strptime(d1, "%Y-%m-%d %H:%M:%S")
     d2 = datetime.strptime(d2, "%Y-%m-%d %H:%M:%S")
     return abs((d2 - d1).days)

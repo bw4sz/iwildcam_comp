@@ -110,16 +110,16 @@ class Generator(keras.utils.Sequence):
         filename_csv = pd.read_csv(csv_name)
             
         #Reading file_name from h5, it needs to be decoded
-        h5_index = filename_csv[image_index==filename_csv.filename].h5_index.values.astype("int")[0]
         
         #Load image
         try:
+            h5_index = filename_csv[image_index==filename_csv.filename].h5_index.values.astype("int")[0]            
             self.image = hf["images"][h5_index,...]
         except Exception as e:
             print("Could not load image {} from location: {}, the length of the images dataset is {} and indexing at position {}".format(image_index,
                                                                                                                                          location,
-                                                                                                                                         len(hf["images"]),
-                                                                                                                                        h5_index))
+                                                                                                                                         len(hf["images"],
+                                                                                                                                        h5_index)))
             raise e
         
         return self.image
