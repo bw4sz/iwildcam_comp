@@ -63,14 +63,15 @@ class Model():
         self.model.fit_generator(
             generator=train_generator,
             steps_per_epoch=train_generator.size()/self.config["classification_model"]["batch_size"],
+            validation_steps = evaluation_generator.size()/self.config["classification_model"]["batch_size"],
             epochs=self.config["classification_model"]["epochs"],
             verbose=1,
             validation_data=evaluation_generator,
             shuffle=False,
             callbacks=callbacks,
-            use_multiprocessing = False,
-            workers=1,
-            max_queue_size=1)       
+            use_multiprocessing = True,
+            workers=2,
+            max_queue_size=10)       
             
     def predict(self, generator):
         
