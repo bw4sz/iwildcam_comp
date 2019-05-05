@@ -66,9 +66,6 @@ if not mode.debug:
 
 experiment.log_parameter("Training Images", training_split.shape[0])
 
-#error has multiple
-#5858c2ed-23d2-11e8-a6a3-ec086b02610b.jpg
-
 #Log 
 train_generator = Generator(training_split, 
                             batch_size=config["classification_model"]["batch_size"], 

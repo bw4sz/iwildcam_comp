@@ -68,7 +68,7 @@ class Model():
             validation_data=evaluation_generator,
             shuffle=False,
             callbacks=callbacks,
-            use_multiprocessing = True,
+            use_multiprocessing = False,
             workers=2,
             max_queue_size=10)       
             
