@@ -23,9 +23,6 @@ proj.launch-config = {loc('../DeepMeerkat/training/Classification/Training.sh'):
                       loc('../DeepMeerkat/training/Classification/trainer/preprocess.py'): ('p'\
         'roject',
         (u'--input_path /Users/ben/Documents/DeepMeerkat/training/Classification/Samples/Training/trainingdata.csv --input_dict /Users/ben/Documents/DeepMeerkat/training/Classification/Samples/dict.txt --output_path Output',
-         '')),
-                      loc('train.py'): ('project',
-        (u'--debug',
          ''))}
 testing.auto-test-file-specs = (('glob',
                                  'test_'),)

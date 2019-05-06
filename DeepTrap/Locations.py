@@ -42,10 +42,15 @@ def preprocess_location(location_data, config, destination_dir):
     """A dictionary object with keys day and night split by pandas image data"""
     
     #Create h5 file for location holder
-    location = location_data["day"].location.unique()[0]      
+    first_key = list(location_data.keys())[0]
+    location = location_data[first_key].location.unique()[0]      
     
     #Create an h5 and csv file
-    n_images = location_data["day"].shape[0] + location_data["night"].shape[0] 
+    keys = list(location_data.keys())
+    n_images = 0
+    for key in keys:
+        n_images += location_data[key].shape[0] 
+        
     image_shape = (config["height"], config["width"])
     
     h5_file, csv_file = create_h5.create_files(

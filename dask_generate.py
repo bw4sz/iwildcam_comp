@@ -36,7 +36,7 @@ def delete_corrupt_h5(f):
         print("{f} failed with error message {e}".format(f=f,e=e))
         counter +=1
         try: 
-            os.remove(path_to_h5)
+            os.remove(f)
         except Exception as e:
             print(e)
             
@@ -100,7 +100,7 @@ def run(config, debug=False):
             print(e)
      
     #Clean up Delete corrupt files
-    h5s = glob.glob(os.path.join(destination_dir), "*.h5")
+    h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
     test_h5s(h5s)
      
 def run_local():
@@ -146,7 +146,7 @@ def run_HPC():
                 
 if __name__ == "__main__":
     #Local debugging
-    #run_local()
+    run_local()
     
     #On Hypergator
-    run_HPC()
+    #run_HPC()

@@ -8,6 +8,7 @@ matplotlib.use('Agg')
 import argparse
 import numpy as np
 from datetime import datetime
+import pandas as pd
 
 from DeepTrap import utils
 from DeepTrap.models import resnet
@@ -42,7 +43,7 @@ if mode.debug:
     config["test_h5_dir"] = "/Users/Ben/Downloads/test/"    
     
 #load annotations
-train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
+train_df = utils.read_train_data(image_dir=config["train_data_path"])
 
 #Ensure images exist
 train_df = utils.check_images(train_df, config["train_data_path"])
@@ -53,15 +54,14 @@ train_df = utils.check_h5s(train_df, config["train_h5_dir"])
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"])
 
-##reduce training locations for temporary model checking, stop at x images, but keep full locations.
-#location_filter = training_split.groupby("location").size().sort_values().cumsum() < 10000 
-#selected_locations = location_filter[location_filter==True].index.values
-#training_split = training_split[training_split.location.isin(selected_locations)]
+#TODO Presence absence model?
 
 #remove empty from set for testing.
 #Try to minimize sources of risk here, just take a set of images from both
-#if not mode.debug:
-    #training_split = training_split.groupby("category_id",as_index=False).apply(lambda x: x.head(5000))
+if not mode.debug:
+    #Rule 1, minimize empty frames, but keep as much generalization as possible. take a random sample of each empty sequence, and then random sample of locations
+    training_split = utils.filter_training(training_split)
+    
     #evaluation_split = evaluation_split[evaluation_split.category_id.isin([0,1,10])].groupby("category_id",as_index=False).apply(lambda x: x.head(10))
 
 experiment.log_parameter("Training Images", training_split.shape[0])

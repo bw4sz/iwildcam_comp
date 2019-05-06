@@ -45,7 +45,7 @@ def read_config(prepend=None):
         config = yaml.load(f)
     return config
     
-def read_train_data(image_dir, supp_data=False):
+def read_train_data(image_dir):
     train_df = pd.read_csv('data/train.csv')
     train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(image_dir, f'{x}.jpg'))
     train_df['dataset'] = "train"    
@@ -53,10 +53,9 @@ def read_train_data(image_dir, supp_data=False):
     
     train_df = train_df.drop_duplicates(subset="file_name")
     
-    if supp_data:
-        print("Loading supp data")
-        supp_data_df = read_supp_data()
-        
+    #animal_empty ID, 0 for empty
+    train_df["is_animal"] = train_df["category_id"] != 0
+    
     return train_df
 
 def read_supp_data():
@@ -99,7 +98,36 @@ def split_training(train_df, image_dir):
     evaluation_split  = train_df[~ train_df.location.isin(training_locations)]
     
     return training_split, evaluation_split
+ 
+def filter_training(training_split):
+    """Intelligent undersampling to reduce class imbalance"""
+    empty_seq = training_split[training_split.category_id==0].groupby("location").apply(lambda x: x.seq_id.drop_duplicates().head(200))
+    empty_images = training_split[training_split.seq_id.isin(empty_seq) & (training_split.category_id==0)].groupby("seq_id").apply(lambda x: x.sample(1))
+
+    #add back in animals
+    animal_images = training_split[training_split.category_id!=0]
+    training_split = pd.concat([empty_images, animal_images])     
     
+    return training_split
+ 
+def sequence_voting(prediction_df, data):
+    """prediction_df: a pandas frame with a "prediction" column containing the category id"""
+    
+    #Get sequence id
+    prediction_data=prediction_df(data[["file_name","seq_id"]])
+    
+    #Get each sequence and find most common prediction
+    most_common = prediction_data.groupby(['seq_id']).agg(lambda x:x.value_counts().index[0])
+    
+    #replace prediction with most common value
+    
+
+#Count labels per sequence
+
+
+
+
+
 def submission(predictions, datestamp):
     submission_df = pd.read_csv('data/sample_submission.csv')    
     submission_df['Predicted'] = predictions

@@ -13,10 +13,10 @@ def test_preprocess_location():
     config = utils.read_config(prepend="..")
     debug=True
     
-    #use local image copy
+    #use local image copys
     if debug:
-        config["train_data_path"] = "../tests/data/sample_location/"
-        config["test_data_path"] = "../tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images"
+        config["train_data_path"] = "../tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images/"
+        config["test_data_path"] = "../tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
         config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
         config["test_h5_dir"] = "/Users/Ben/Downloads/test/"
         

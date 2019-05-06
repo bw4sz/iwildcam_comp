@@ -3,7 +3,7 @@ import keras
 from sklearn.metrics import f1_score
 import pandas as pd
 import numpy as np
-from DeepTrap import visualization, preprocess
+from DeepTrap import visualization, preprocess, utils
 import matplotlib.pyplot as plt
 
 class Evaluate(keras.callbacks.Callback):
@@ -41,6 +41,9 @@ class Evaluate(keras.callbacks.Callback):
         results = pd.DataFrame({"filename":list(ground_truth.keys())})
         results["ground_truth"] = results.filename.map(ground_truth)
         results["predictions"] = results.filename.map(predictions)
+        
+        #TODO smooth sequence labels based on majority rule
+        results = utils.sequence_voting(results, self.generator.data)
     
         f1 = f1_score(results.ground_truth.values, results.predictions.values, average="macro")
         

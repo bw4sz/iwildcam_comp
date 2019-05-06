@@ -110,28 +110,39 @@ class BackgroundModel():
         median_background = median_background.astype(np.uint8)
         return median_background
     
-    def post_process(self,image):
+    def post_process(self,difference_image, original_image):
         """Assumes YCrCB color space
         """
-        #Scale just the luminance, clamp negative values
-        #image[:,:,0] = cv2.subtract(image[:,:,0], image[:,:,0].mean())
-        
-        image = cv2.blur(image, (3,3))
-    
+            
         #divide by max and scale to 0-255 for each channel
-        image[:,:,0] = image[:,:,0] / image[:,:,0].max() * 255
-        image[:,:,1] = image[:,:,1] / image[:,:,1].max() * 255
-        image[:,:,2] = image[:,:,2] / image[:,:,2].max() * 255
+        difference_image[:,:,0] = difference_image[:,:,0] / difference_image[:,:,0].max() * 255
+        difference_image[:,:,1] = difference_image[:,:,1] / difference_image[:,:,1].max() * 255
+        difference_image[:,:,2] = difference_image[:,:,2] / difference_image[:,:,2].max() * 255
         
-        return image
+        #Threshold        
+        #Mask and get the original colors
+        im_gray = cv2.cvtColor(difference_image, cv2.COLOR_BGR2GRAY)        
+        _, mask = cv2.threshold(im_gray, thresh=10, maxval=255, type=cv2.THRESH_BINARY)    
+        
+        #Remove noise in mask, open then close holes.
+        kernel = np.ones((5,5),np.uint8)        
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        kernel = np.ones((9,9),np.uint8)                
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        
+        #Get 3 color images
+        mask3 = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        im_thresh_color = cv2.bitwise_and(original_image, mask3)
+        
+        return im_thresh_color
     
     def apply(self, background, image):
         """subtract an image from background and convert to colorspace"""
         #Background subtractions
         foreground = cv2.absdiff(background, image)
         
-        #Mean center
-        thresh = self.post_process(foreground)
+        #Mean center and threshold
+        thresh = self.post_process(foreground, image)
         
         return thresh
         
@@ -163,10 +174,10 @@ class BackgroundModel():
             filenames.append(filename)
             
             #plot
-            #plt.subplot(2,num_images,num_images + index+1)
-            #back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
-           #plt.imshow(back_to_rgb)
-        #plt.show()                
+            plt.subplot(2,num_images,num_images + index+1)
+            back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
+            plt.imshow(back_to_rgb)
+        plt.show()                
                            
         return (subtracted_images, filenames)
         
@@ -200,10 +211,10 @@ class BackgroundModel():
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
                 
         ##plot
-        #plt.subplot(2,num_images,num_images + index+1)            
-        #back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
-        #plt.imshow(back_to_rgb)
-        #plt.show()
+        plt.subplot(2,num_images,num_images + index+1)            
+        back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
+        plt.imshow(back_to_rgb)
+        plt.show()
         
         return ([threshold_image], [filename])
         
@@ -229,7 +240,7 @@ class BackgroundModel():
             #Burst set of images?
             is_sequence = image_data.shape[0] > 1
 
-            #self.plot_sequence(image_data)                  
+            self.plot_sequence(image_data)                  
             if is_sequence:
                 #Run background subtraction
                 seq_images, seq_filenames = self.run_sequence(image_data)
