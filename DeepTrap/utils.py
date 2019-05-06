@@ -110,24 +110,50 @@ def filter_training(training_split):
     
     return training_split
  
-def sequence_voting(prediction_df, data):
-    """prediction_df: a pandas frame with a "prediction" column containing the category id"""
+def sequence_voting(prediction_data):
+    """prediction_data: a pandas frame with a "prediction" column containing the category id, and seq id"""
+        
+    #Two rules
+    #0 Assumption: creating only a single label per sequence.
+    #1 - For animal categories perform majority rule
+    animal_predictions = prediction_data[prediction_data.predictions != 0]    
     
-    #Get sequence id
-    prediction_data=prediction_df(data[["file_name","seq_id"]])
+    #Get each sequence and find most common animal prediction
+    most_common = animal_predictions.groupby("seq_id").apply(lambda x: top_class_no_ties(x))
     
-    #Get each sequence and find most common prediction
-    most_common = prediction_data.groupby(['seq_id']).agg(lambda x:x.value_counts().index[0])
+    #Returning NaN causes all sorts of int -> float type changes, do -99 and remove.
+    most_common = most_common[most_common!=-99].to_dict()
     
-    #replace prediction with most common value
+    #make a copy of the frame to update from
+    new_predictions = prediction_data.copy()
+    new_predictions["predictions"] = new_predictions["seq_id"].map(most_common)
+    new_predictions = new_predictions.dropna()
     
+    #drop NaN and reset type
+    prediction_data.update(new_predictions)
+    
+    #keeps setting to float for some reason
+    prediction_data.predictions = prediction_data.predictions.astype("int")
+    
+    return prediction_data
 
-#Count labels per sequence
+def top_class_no_ties(data):
+    """Helper function to pick the top class of animal, but leave alone if there are ties"""
 
-
-
-
-
+    #count each category, sorts by descending
+    dcounts = data.predictions.value_counts()
+    
+    #If there is more than one category, is there a tie? A bit ugly code
+    if len(dcounts.values) > 1:
+        if dcounts.values[0] == dcounts.values[1]:
+            return -99
+        else:
+            top_class  = dcounts.head(1).index.values[0]
+    else:
+        top_class  = dcounts.head(1).index.values[0]
+        
+    return top_class
+    
 def submission(predictions, datestamp):
     submission_df = pd.read_csv('data/sample_submission.csv')    
     submission_df['Predicted'] = predictions

@@ -104,7 +104,8 @@ if not mode.debug:
 validation_generator = Generator(test_df,
                                  batch_size=config["classification_model"]["batch_size"], 
                                  h5_dir=config["test_h5_dir"],
-                                 training=False,image_dir=config["test_data_path"])
+                                 training=False,
+                                 image_dir=config["test_data_path"])
 #predict
 predictions = model.predict(validation_generator)
 

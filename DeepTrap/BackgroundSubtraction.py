@@ -22,13 +22,14 @@ def days_between(d1, d2):
 #Start a background subtraction object
 class BackgroundModel():
     
-    def __init__(self,image_data, target_shape):
+    def __init__(self,image_data, target_shape, plot=False):
         """Create a background model class
         image_data: pandas dataframe of image data
         return A Object of Class Background Model
         """
         self.data = image_data
         self.target_shape = target_shape
+        self.plot = plot
         
         #Set a global sequence background
         self.sequence_background = None
@@ -174,10 +175,12 @@ class BackgroundModel():
             filenames.append(filename)
             
             #plot
-            plt.subplot(2,num_images,num_images + index+1)
-            back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
-            plt.imshow(back_to_rgb)
-        plt.show()                
+            if self.plot:
+                plt.subplot(2,num_images,num_images + index+1)
+                back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
+                plt.imshow(back_to_rgb)
+        if self.plot:
+            plt.show()                
                            
         return (subtracted_images, filenames)
         
@@ -211,10 +214,11 @@ class BackgroundModel():
             filename = image_data[image_data.file_path == image_path].file_name.values[0]            
                 
         ##plot
-        plt.subplot(2,num_images,num_images + index+1)            
-        back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
-        plt.imshow(back_to_rgb)
-        plt.show()
+        if self.plot:
+            plt.subplot(2,num_images,num_images + index+1)            
+            back_to_rgb = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2RGB)
+            plt.imshow(back_to_rgb)
+            plt.show()
         
         return ([threshold_image], [filename])
         
@@ -240,7 +244,8 @@ class BackgroundModel():
             #Burst set of images?
             is_sequence = image_data.shape[0] > 1
 
-            self.plot_sequence(image_data)                  
+            if self.plot:
+                self.plot_sequence(image_data)                  
             if is_sequence:
                 #Run background subtraction
                 seq_images, seq_filenames = self.run_sequence(image_data)

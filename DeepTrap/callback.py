@@ -42,14 +42,18 @@ class Evaluate(keras.callbacks.Callback):
         results["ground_truth"] = results.filename.map(ground_truth)
         results["predictions"] = results.filename.map(predictions)
         
+        #TODO save predictions to file
+        #self.experiment.log_other(results.to_csv("predictions_before_smoothing.csv"))
+        
         #TODO smooth sequence labels based on majority rule
-        results = utils.sequence_voting(results, self.generator.data)
+        prediction_data=results.merge(self.generator.data[["file_name","seq_id"]], left_on ="filename", right_on ="file_name")
+        smoothed_results = utils.sequence_voting(prediction_data)
     
-        f1 = f1_score(results.ground_truth.values, results.predictions.values, average="macro")
+        f1 = f1_score(smoothed_results.ground_truth.values, smoothed_results.predictions.values, average="macro")
         
         #Calculate confusion matrix
         labels = list(self.generator.classes.values())
-        fig = visualization.plot_confusion_matrix(results.ground_truth, results.predictions, labels)
+        fig = visualization.plot_confusion_matrix(smoothed_results.ground_truth, smoothed_results.predictions, labels)
         if self.experiment:
             self.experiment.log_metric("f1 score", f1)        
             self.experiment.log_figure("confusion_matrix",fig)
@@ -60,8 +64,13 @@ class Evaluate(keras.callbacks.Callback):
             #Find annotation
             class_label = np.argmax(self.generator.load_annotation(x))
             ground_class = self.generator.name_to_label(class_label)
-            prediction_class  = self.generator.name_to_label(predictions[x])
-            title = "Label: {}, Prediction {}".format(ground_class,prediction_class)
+            
+            #Initial and time smoothed prediction
+            initial_prediction_class  = self.generator.name_to_label(predictions[x])
+            smoothed_prediction_class =  self.generator.name_to_label(prediction_data[prediction_data.file_name ==x].predictions.values[0])
+            
+            #Add a title plot
+            title = "Label {}, Initial Prediction: {}, Smoothed Prediction {}".format(ground_class, initial_prediction_class, smoothed_prediction_class)
             fig = self.generator.plot_image(x, title)
             self.experiment.log_figure(x, fig,overwrite=True)
             
