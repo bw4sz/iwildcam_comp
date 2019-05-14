@@ -54,7 +54,8 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     """
 
     print("y_true has a shape of: {}, y_pred has shape {}".format(y_true.shape, y_pred.shape))
-    
+    y_pred[:5]
+    y_true[:5]
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     

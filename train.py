@@ -58,7 +58,10 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 #Try to minimize sources of risk here, just take a set of images from both
 #Rule 1, minimize empty frames, but keep as much generalization as possible. take a random sample of each empty sequence, and then random sample of locations
 training_split = utils.filter_training(training_split)
-    
+ 
+ #hipergator debug
+evaluation_split= evaluation_split.head(20)
+training_split = training_split.head(20)
 experiment.log_parameter("Training Images", training_split.shape[0])
 
 #Log 
