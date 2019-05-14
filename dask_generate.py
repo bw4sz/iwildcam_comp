@@ -151,11 +151,11 @@ def run_HPC():
                 
 if __name__ == "__main__":
     #Local debugging
-    import timeit
-    start = timeit.default_timer()
-    run_local()    
-    stop = timeit.default_timer()
-    print('Time: ', stop - start)    
+    #import timeit
+    #start = timeit.default_timer()
+    #run_local()    
+    #stop = timeit.default_timer()
+    #print('Time: ', stop - start)    
     
     #On Hypergator
-    #run_HPC()
+    run_HPC()
