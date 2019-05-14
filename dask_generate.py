@@ -91,8 +91,7 @@ def run(config, debug=False):
         
     #parallel loop with error handling
     values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
-    persisted_values = persist(*values)
-    for pv in persisted_values:
+    for pv in values:
         try:
             fire_and_forget(pv)
         except Exception as e:

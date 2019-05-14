@@ -56,12 +56,9 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 
 #remove empty from set for testing.
 #Try to minimize sources of risk here, just take a set of images from both
-if not mode.debug:
-    #Rule 1, minimize empty frames, but keep as much generalization as possible. take a random sample of each empty sequence, and then random sample of locations
-    training_split = utils.filter_training(training_split)
+#Rule 1, minimize empty frames, but keep as much generalization as possible. take a random sample of each empty sequence, and then random sample of locations
+training_split = utils.filter_training(training_split)
     
-    #evaluation_split = evaluation_split[evaluation_split.category_id.isin([0,1,10])].groupby("category_id",as_index=False).apply(lambda x: x.head(10))
-
 experiment.log_parameter("Training Images", training_split.shape[0])
 
 #Log 

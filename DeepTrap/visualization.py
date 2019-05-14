@@ -53,8 +53,11 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     Normalization can be applied by setting `normalize=True`.
     """
 
+    print("y_true has a shape of: {}, y_pred has shape {}".format(y_true.shape, y_pred.shape))
+    
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
+    
     # Only use the labels that appear in the data
     classes = [classes[i] for i in unique_labels(y_true, y_pred)]
     if normalize:
