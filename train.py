@@ -30,7 +30,6 @@ config = utils.read_config()
 #log
 experiment.log_parameters(config)
 experiment.log_parameters(prefix= "classification_model", dic=config["classification_model"])
-experiment.log_parameters(prefix= "bgmodel", dic=config["bgmodel"])
 
 #use local image copy
 if mode.debug:
