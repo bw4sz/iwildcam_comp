@@ -6,7 +6,7 @@ import glob
 import h5py
 
 from dask_jobqueue import SLURMCluster
-from dask.distributed import Client, wait
+from dask.distributed import Client, wait, fire_and_forget
 from dask import delayed, compute, persist
 
 from DeepTrap import Locations, utils, BackgroundSubtraction
@@ -66,10 +66,9 @@ def run(config, debug=False):
     
     ##parallel loop with error handling    
     values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
-    persisted_values = persist(*values)
-    for pv in persisted_values:
+    for pv in values:
         try:
-            wait(pv)
+            fire_and_forget(pv)
         except Exception as e:
             print(e)
     
@@ -95,7 +94,7 @@ def run(config, debug=False):
     persisted_values = persist(*values)
     for pv in persisted_values:
         try:
-            wait(pv)
+            fire_and_forget(pv)
         except Exception as e:
             print(e)
      
@@ -130,7 +129,7 @@ def run_HPC():
         queue='hpg2-compute',
         cores=3, 
         memory='11GB', 
-        walltime='12:00:00',
+        walltime='24:00:00',
         job_extra=extra_args,
         local_directory="/home/b.weinstein/logs/", death_timeout=150)
     
