@@ -57,8 +57,9 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     cm = confusion_matrix(y_true, y_pred)
     
     # Only use the labels that appear in the data
-    animal_labels = unique_labels(y_true, y_pred)
+    animal_labels = unique_labels(y_true, y_pred).astype("int")
     print("labels are: {}".format(animal_labels))
+    
     classes = [classes[i] for i in animal_labels]
     if normalize:
         

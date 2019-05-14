@@ -30,7 +30,7 @@ def delete_corrupt_h5(f):
     counter = 0
     try:
         hf = h5py.File(f, 'r')
-        shape=hf['images'][0,].shape
+        shape=hf['images'].shape
         print("{t} has a shape {s}".format(t=f,s=shape))
     except Exception as e:
         print("{f} failed with error message {e}".format(f=f,e=e))
@@ -70,9 +70,12 @@ def run(config, debug=False):
     ##parallel loop with error handling    
     #get the order of locations by size.
     values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in order]
-    for pv in values:
+    persisted_values = persist(*values)    
+    
+    for pv in persisted_values:
         try:
-            fire_and_forget(pv)
+            print("hi")
+            wait(pv)
         except Exception as e:
             print(e)
     
@@ -96,9 +99,11 @@ def run(config, debug=False):
     
     #parallel loop with error handling
     values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in order]
-    for pv in values:
+    persisted_values = persist(*values)    
+    for pv in persisted_values:
         try:
-            fire_and_forget(pv)
+            print("raising value")
+            wait(pv)
         except Exception as e:
             print(e)
      
@@ -144,12 +149,15 @@ def run_HPC():
     
     #Start dask
     dask_client.run_on_scheduler(start_tunnel)  
-    
     run(config, debug=False)
                 
 if __name__ == "__main__":
     #Local debugging
-    #run_local()
+    import timeit
+    start = timeit.default_timer()
+    run_local()    
+    stop = timeit.default_timer()
+    print('Time: ', stop - start)    
     
     #On Hypergator
-    run_HPC()
+    #run_HPC()
