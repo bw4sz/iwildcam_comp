@@ -64,8 +64,12 @@ def run(config, debug=False):
     locations  = Locations.sort_locations(train_df)
     print("{} locations found".format(len(locations)))
     
+    #order by number of images
+    order= train_df.groupby("location").size().sort_values(ascending=False).index.values
+    
     ##parallel loop with error handling    
-    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
+    #get the order of locations by size.
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in order]
     for pv in values:
         try:
             fire_and_forget(pv)
@@ -88,9 +92,10 @@ def run(config, debug=False):
         
     #Sort images into location
     locations  = Locations.sort_locations(test_df)
-        
+    order= test_df.groupby("location").size().sort_values(ascending=False).index.values
+    
     #parallel loop with error handling
-    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in locations]
+    values = [delayed(Locations.preprocess_location)(locations[x],destination_dir=destination_dir, config=config) for x in order]
     for pv in values:
         try:
             fire_and_forget(pv)
