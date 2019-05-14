@@ -60,8 +60,6 @@ training_split, evaluation_split = utils.split_training(train_df, image_dir=conf
 training_split = utils.filter_training(training_split)
  
  #hipergator debug
-evaluation_split= evaluation_split.head(1000)
-training_split = training_split.head(1000)
 experiment.log_parameter("Training Images", training_split.shape[0])
 
 #Log 
