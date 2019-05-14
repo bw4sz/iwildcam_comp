@@ -70,7 +70,7 @@ class Evaluate(keras.callbacks.Callback):
             smoothed_prediction_class =  self.generator.name_to_label(prediction_data[prediction_data.file_name ==x].predictions.values[0])
             
             #Add a title plot
-            title = "Label {}, Initial Prediction: {}, Smoothed Prediction {}".format(ground_class, initial_prediction_class, smoothed_prediction_class)
+            title = "Label {}, \n Initial: {}, Smoothed: {}".format(ground_class, initial_prediction_class, smoothed_prediction_class)
             fig = self.generator.plot_image(x, title)
             self.experiment.log_figure(x, fig,overwrite=True)
             

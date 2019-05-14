@@ -54,8 +54,6 @@ train_df = utils.check_h5s(train_df, config["train_h5_dir"])
 #Create keras training generator - split the training data into a validation set, both from the California site.
 training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"])
 
-#TODO Presence absence model?
-
 #remove empty from set for testing.
 #Try to minimize sources of risk here, just take a set of images from both
 if not mode.debug:
