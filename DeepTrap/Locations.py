@@ -3,62 +3,90 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
-import BackgroundSubtraction
-import utils
-import Detector
+#DeepTrap
+from DeepTrap import BackgroundSubtraction, create_h5, utils
 
-#Read and log config file
-config = utils.read_config(prepend="..")
-output_dir = config["output_dir"]
-
-debug=True
-#check for image dir
-#if not os.path.exists(output_dir):
-    #os.mkdir(output)
+def convert_time(time_string):
+    try:
+        date_object = datetime.strptime(time_string , "%Y-%m-%d %H:%M:%S")
+    except:
+        return "day"
     
-#use local image copy
-if debug:
-    config["train_data_path"] = "../tests/data/sample_location"
+    #time interval
+    is_day = date_object.hour  > 8 and date_object.hour  < 17
+    
+    if is_day:
+        return "day"
+    else:
+        return "night"
+    
+def sort_locations(data):
+    """Divide the input data into location sets for background subtraction"""
+    
+    #denote day and night, if poorly formatted add to day.
+    data["day_night"] = data.date_captured.apply(convert_time)
 
-#Load data
-train_df = pd.read_csv('../data/train.csv')
-train_df['file_path'] = train_df['id'].apply(lambda x: os.path.join(config["train_data_path"], f'{x}.jpg'))
-train_df = utils.check_images(train_df, config["train_data_path"])
+    #Split into nested dict by location and daynight
+    location_dict = {}
+    for i in data["location"].unique():
+        location_data = data[data.location == i]
+        location_dict[i] = {}        
+        for j in location_data["day_night"].unique():
+            location_dict[i][j] = location_data[location_data.day_night == j]
+    
+    return location_dict
 
-#Sort images into location
-locations  = BackgroundSubtraction.sort_locations(train_df)
-
-predicted_empty = []
-predicted_boxes = []
-
-for location in locations:
-    for day_or_night in locations[location]:
-            
+def preprocess_location(location_data, config, destination_dir):
+    """A dictionary object with keys day and night split by pandas image data"""
+    
+    #Create h5 file for location holder
+    first_key = list(location_data.keys())[0]
+    location = location_data[first_key].location.unique()[0]      
+    
+    #Create an h5 and csv file
+    keys = list(location_data.keys())
+    n_images = 0
+    for key in keys:
+        n_images += location_data[key].shape[0] 
+        
+    image_shape = (config["height"], config["width"])
+    
+    h5_file, csv_file = create_h5.create_files(
+        destination_dir,
+        location,
+        image_shape = image_shape,
+        n_images = n_images) 
+    
+    h5_index = 0 
+    for day_or_night in location_data:
+        
         #Selection image data
-        image_data = locations[location][day_or_night]
+        image_data = location_data[day_or_night]
         
         #sort by timestamp
         image_data = image_data.sort_values("date_captured")
         
         #Create a background model object for camera location of sequences
-        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, day_or_night = day_or_night )
+        bgmodel = BackgroundSubtraction.BackgroundModel(image_data, target_shape = image_shape)
         
         #Select representative images based on temporal median difference
-        target_images = bgmodel.run()
+        #place outputs in a csv and h5 holder position
+        if bgmodel:
+            h5_index = bgmodel.run(h5_file, csv_file, h5_index)
+        else:
+            print("File exists, skipping location")
         
-        for sequence in target_images:
-            image_dict = target_images[sequence]
-            for file_name in image_dict:
-                image_crop = Detector.run_crop(file_name = file_name , box=image_dict[file_name])
-                
-            #crop images based on Megadetector intersecting with temporal median box
+    #close files
+    #report h5 file size
+    nfiles = len(h5_file["images"])
+    fname = h5_file.filename
+    
+    csv_file.close()
+    h5_file.close()
+    
+    print("{} file exists with {} files".format(fname, nfiles))
+    return "{} file exists with {} files".format(fname, nfiles)
         
-        #Write tfrecords
         
-        #Side effect, those with no boxes are predicted empty
-        predicted_empty.append(bgmodel.predictions)
-        
-#Save predicted empty based on temporal median
-#Convert to dataframe and save
-#predicted_empty

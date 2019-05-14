@@ -8,11 +8,12 @@ matplotlib.use('Agg')
 import argparse
 import numpy as np
 from datetime import datetime
+import pandas as pd
 
 from DeepTrap import utils
 from DeepTrap.models import resnet
 from DeepTrap import evaluation, visualization, callback
-from DeepTrap.Generator import Generator
+from DeepTrap.H5Generator import Generator
 
 #Set training or training
 mode_parser = argparse.ArgumentParser(description='DeepTrap Training')
@@ -25,46 +26,59 @@ dirname = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 #Read and log config file
 config = utils.read_config()
+
+#log
 experiment.log_parameters(config)
 experiment.log_parameters(prefix= "classification_model", dic=config["classification_model"])
 experiment.log_parameters(prefix= "bgmodel", dic=config["bgmodel"])
 
 #use local image copy
 if mode.debug:
-    config["train_data_path"] = "tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images/"
+    config["train_data_path"] = "tests/data/iWildCam_2019_CCT/iWildCam_2019_CCT_images"
     config["test_data_path"] = "tests/data/iWildCam_2019_IDFG/iWildCam_IDFG_images/"
     config["classification_model"]["epochs"] = 1
     config["classification_model"]["batch_size"] =3
-    config["classification_model"]["gpu"] = 1
+    config["classification_model"]["gpus"] = 1
+    config["train_h5_dir"] = "/Users/Ben/Downloads/train/"
+    config["test_h5_dir"] = "/Users/Ben/Downloads/test/"    
     
 #load annotations
-train_df = utils.read_train_data(image_dir=config["train_data_path"], supp_data=False)
+train_df = utils.read_train_data(image_dir=config["train_data_path"])
 
 #Ensure images exist
 train_df = utils.check_images(train_df, config["train_data_path"])
 
-#Create keras training generator - split the training data into a validation set, both from the California site.
-training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"] )
+#check h5 preprocessed utils.check_h5
+train_df = utils.check_h5s(train_df, config["train_h5_dir"])
 
-#reduce training locations for temporary model checking, stop at 10000 images, but keep full locations.
-location_filter = training_split.groupby("location").size().sort_values().cumsum() < 50000 
-selected_locations = location_filter[location_filter==True].index.values
-training_split = training_split[training_split.location.isin(selected_locations)]
+#Create keras training generator - split the training data into a validation set, both from the California site.
+training_split, evaluation_split = utils.split_training(train_df, image_dir=config["train_data_path"])
 
 #remove empty from set for testing.
-training_split = training_split[training_split.category_id!=0]
-evaluation_split =evaluation_split[evaluation_split.category_id!=0]
+#Try to minimize sources of risk here, just take a set of images from both
+if not mode.debug:
+    #Rule 1, minimize empty frames, but keep as much generalization as possible. take a random sample of each empty sequence, and then random sample of locations
+    training_split = utils.filter_training(training_split)
+    
+    #evaluation_split = evaluation_split[evaluation_split.category_id.isin([0,1,10])].groupby("category_id",as_index=False).apply(lambda x: x.head(10))
 
-#Log m
+experiment.log_parameter("Training Images", training_split.shape[0])
+
+#Log 
 train_generator = Generator(training_split, 
-                            image_size=config["classification_model"]["image_size"],
                             batch_size=config["classification_model"]["batch_size"], 
+                            h5_dir=config["train_h5_dir"],
                             image_dir=config["train_data_path"])
+
+#Sanity check
+assert train_generator.size() > 0, "No training data available"
 
 evaluation_generator = Generator(evaluation_split,
-                            image_size=config["classification_model"]["image_size"],
                             batch_size=config["classification_model"]["batch_size"], 
-                            image_dir=config["train_data_path"])
+                            h5_dir=config["train_h5_dir"], image_dir=config["train_data_path"])
+
+experiment.log_parameter("Evaluation Images", evaluation_generator.size())
+assert evaluation_generator.size() > 0, "No evaluation data available"
 
 #Create callbacks
 evalution_callback = callback.Evaluate(evaluation_generator, experiment)
@@ -79,16 +93,17 @@ model.train(train_generator, evaluation_generator=evaluation_generator, callback
 #Test data
 test_df = utils.read_test_data(image_dir=config["test_data_path"])
 test_df = utils.check_images(test_df, config["test_data_path"])
+test_df = utils.check_h5s(test_df, config["test_h5_dir"])
 
 if not mode.debug:
     test_df = test_df.sample(n=100)
 
 #Create evaluation generator and predict
 validation_generator = Generator(test_df,
-                                 image_size=config["classification_model"]["image_size"],
                                  batch_size=config["classification_model"]["batch_size"], 
-                                 image_dir=config["test_data_path"],
-                                 training=False)
+                                 h5_dir=config["test_h5_dir"],
+                                 training=False,
+                                 image_dir=config["test_data_path"])
 #predict
 predictions = model.predict(validation_generator)
 

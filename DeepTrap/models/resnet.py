@@ -10,12 +10,15 @@ import tensorflow as tf
 from .. import utils, preprocess
 from keras import backend as K
 
+from sklearn.utils import class_weight
+
 class Model():
     
     def __init__(self, config):
         self.config = config
-        self.image_size = config["classification_model"]["image_size"]
-        shape = (self.image_size , self.image_size , 3)
+        self.image_height = config["height"]
+        self.image_width = config["width"]
+        shape = (self.image_height , self.image_width , 3)
         self.num_classes = len(utils.classes)
         
         #Define input shape
@@ -31,8 +34,11 @@ class Model():
         else:
             self.model = self.load_model()            
         
-        #compile
+        #compile focal loss
         self.model.compile("adam", [categorical_focal_loss(alpha=.25, gamma=2)], ["accuracy"])
+        
+        #compile
+        #self.model.compile("adam", "categorical_crossentropy", ["accuracy"])
 
     def load_model(self):
         
@@ -53,7 +59,7 @@ class Model():
         return model
         
     def train(self, train_generator, callbacks=None, evaluation_generator=None):
-                
+                        
         self.model.fit_generator(
             generator=train_generator,
             steps_per_epoch=train_generator.size()/self.config["classification_model"]["batch_size"],
@@ -62,9 +68,9 @@ class Model():
             validation_data=evaluation_generator,
             shuffle=False,
             callbacks=callbacks,
-        use_multiprocessing = True,
-        workers=2,
-        max_queue_size=2)       
+            use_multiprocessing = True,
+            workers=2,
+            max_queue_size=10)       
             
     def predict(self, generator):
         
