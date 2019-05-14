@@ -163,8 +163,14 @@ class BackgroundModel():
             #Load image
             image = self.load_image(image_path)
             
+            #if sequence is longer than 6 images, sample it
+            background_data = image_data[image_data.file_path !=image_path]
+            
+            if background_data.shape[0] > 6:
+                background_data = background_data.sample(6)
+                       
             #temporal median 
-            sequence_background = self.create_background(image_data[image_data.file_path !=image_path], target_shape=image.shape)
+            sequence_background = self.create_background(background_data, target_shape=image.shape)
             
             #image threshold - threshold based on day night
             threshold_image = self.apply(sequence_background, image)
@@ -237,7 +243,7 @@ class BackgroundModel():
         
         #target images container
         for sequence in sequence_dict:
-            
+                        
             #Get image data
             image_data = sequence_dict[sequence]
            

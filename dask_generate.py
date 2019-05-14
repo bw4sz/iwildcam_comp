@@ -74,16 +74,15 @@ def run(config, debug=False):
     
     for pv in persisted_values:
         try:
-            print("hi")
             wait(pv)
         except Exception as e:
             print(e)
-    
+                
     #Clean up Delete corrupt files
     h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
     test_h5s(h5s)
         
-    #test data
+    ##test data
     test_df = pd.read_csv('data/test.csv')
     test_df['file_path'] = test_df['id'].apply(lambda x: os.path.join(config["test_data_path"], f'{x}.jpg'))
     test_df = utils.check_images(test_df, config["test_data_path"])
@@ -102,11 +101,10 @@ def run(config, debug=False):
     persisted_values = persist(*values)    
     for pv in persisted_values:
         try:
-            print("raising value")
             wait(pv)
         except Exception as e:
             print(e)
-     
+         
     #Clean up Delete corrupt files
     h5s = glob.glob(os.path.join(destination_dir, "*.h5"))
     test_h5s(h5s)
